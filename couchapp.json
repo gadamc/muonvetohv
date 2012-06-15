@@ -1,0 +1,4 @@
+{
+    "name": "Cryogenic Variable Display",
+    "description": "This should display various cryostat variables as reported by the Automat."
+}

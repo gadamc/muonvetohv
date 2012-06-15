@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+       
+  <head>
+  	<title>Edelweiss Cryostat</title>
+    <script src="/_utils/script/json2.js" type="text/javascript"></script>
+    <script src="/_utils/script/jquery.js" type="text/javascript"></script>
+    <script src="/_utils/script/jquery.couch.js" type="text/javascript"></script>
+    <script src="script/highcharts.js" type="text/javascript"></script>
+    <script src="script/themes/grid.js" type="text/javascript"></script> 
+    <script src="script/modules/exporting.js" type="text/javascript"></script>
+    <script src="script/highslide/highslide-full.min.js" type="text/javascript"></script>
+    <script src="script/highslide/highslide.config.js" type="text/javascript"></script>
+    <script src="main.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="stylesheets/highslide.css" />
+    
+  </head>
+  
+  <body>
+    
+    <h3>Cryostat Variable for a range of Dates (defaults to show the last 4 hours) </h3>
+     Note: If you select a large range of dates, it may bog down your browser/computer.... be patient.
+    <br>
+         Using your mouse, you can drag a box in the graph and zoom in.
+    <br> The dates are in UTC (Universal Time), which is -2/-1 hours different from Paris time.
+    <br><br>
+
+        
+    
+    <form name="temperatureform">
+    
+            Start Date (Hour, Day, Month, Year)<br>
+            <select id="firsthourdropdown">
+            </select> 
+            <select id="firstdaydropdown">
+            </select> 
+            <select id="firstmonthdropdown">
+            </select> 
+            <select id="firstyeardropdown">
+            </select> 
+            <br><br>End Date <br>
+            <select id="lasthourdropdown">
+            </select> 
+            <select id="lastdaydropdown">
+            </select> 
+            <select id="lastmonthdropdown">
+            </select> 
+            <select id="lastyeardropdown">
+            </select> 
+            <br><br>
+            <select id="cryomeasurement">
+            </select>
+
+            <input type="hidden" name="id" id="idId" />
+            <br><br>
+            <input type="button" id="getTempsId" value="Plot Measurements" />
+            
+    </form>
+   	<br>
+    <div id="chart" style="width: 800px; height: 400px; margin: 0 auto"></div>
+    <ul id="data" ></ul>
+
+
+  </body>
+</html>
