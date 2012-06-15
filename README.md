@@ -1,6 +1,6 @@
 # cryostat app
 
-This displays the measured quantites of the crysostat as reportedy by the automate server 134.***.112
+This displays the measured high voltage values of the Muon Veto HV
 
 To upload this app to a database call:
 
