@@ -1,0 +1,3 @@
+function(new_doc, old_doc, userCtx) {   if(!userCtx.name)
+{ throw({forbidden: "Please log in first."});   } 
+}
