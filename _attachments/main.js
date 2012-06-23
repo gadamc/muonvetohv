@@ -1,121 +1,190 @@
 var db = $.couch.db(window.location.pathname.split("/")[1]);
+var hardwareMapDb = $.couch.db('muonvetohardwaremap');
+
 var now = new Date();
-var fourHoursAgo=new Date();
-fourHoursAgo.setUTCHours(fourHoursAgo.getUTCHours() - 4);
+var fourDaysAgo = new Date();
+fourDaysAgo.setDate(fourDaysAgo.getDate() - 4);
+var highVoltageDoc = {};
+var hardwareMapDoc = {};
 
 $(document).ready(function() {
 
 
-          $('#idate').datetimepicker({
-            numberOfMonths: 1,
-            showButtonPanel: true,
-            changeMonth: true,
-            changeYear: true,
-            defaultDate: fourHoursAgo,
-            addSliderAccess: true,
-            sliderAccessArgs: { touchonly: false },
-            onClose: function(dateText, inst) {
-                  var endDateTextBox = $('#fdate');
-                  if (endDateTextBox.val() != '') {
-                      var testStartDate = new Date(dateText);
-                      var testEndDate = new Date(endDateTextBox.val());
-                      if (testStartDate > testEndDate)
-                          endDateTextBox.val(dateText);
-                  }
-                  else {
-                      endDateTextBox.val(dateText);
-                  }
-              },
-              onSelect: function (selectedDateTime){
-                  var start = $(this).datetimepicker('getDate');
-                  $('#fdate').datetimepicker('option', 'minDate', new Date(start.getTime()));
-              }
-          });
-          $('#fdate').datetimepicker({
-            numberOfMonths: 1,
-            showButtonPanel: true,
-            defaultDate: now,
-            changeMonth: true,
-            changeYear: true,
-            addSliderAccess: true,
-            sliderAccessArgs: { touchonly: false },
-              onClose: function(dateText, inst) {
-                  var startDateTextBox = $('#idate');
-                  if (startDateTextBox.val() != '') {
-                      var testStartDate = new Date(startDateTextBox.val());
-                      var testEndDate = new Date(dateText);
-                      if (testStartDate > testEndDate)
-                          startDateTextBox.val(dateText);
-                  }
-                  else {
-                      startDateTextBox.val(dateText);
-                  }
-              },
-              onSelect: function (selectedDateTime){
-                  var end = $(this).datetimepicker('getDate');
-                  $('#idate').datetimepicker('option', 'maxDate', new Date(end.getTime()) );
-              }
-          });
+  $('#idate').datetimepicker({
+    numberOfMonths: 1,
+    showButtonPanel: true,
+    changeMonth: true,
+    changeYear: true,
+    defaultDate: fourDaysAgo,
+    addSliderAccess: true,
+    sliderAccessArgs: { touchonly: false },
+    onClose: function(dateText, inst) {
+      var endDateTextBox = $('#fdate');
+      if (endDateTextBox.val() != '') {
+        var testStartDate = new Date(dateText);
+        var testEndDate = new Date(endDateTextBox.val());
+        if (testStartDate > testEndDate) endDateTextBox.val(dateText);
+      }
+      else {
+        endDateTextBox.val(dateText);
+      }
+    },
+    onSelect: function (selectedDateTime){
+        var start = $(this).datetimepicker('getDate');
+        $('#fdate').datetimepicker('option', 'minDate', new Date(start.getTime()));
+      }
+  });
           
-         $('#fdate').datetimepicker('setDate', now );
-      $('#idate').datetimepicker('setDate', fourHoursAgo );
+  $('#fdate').datetimepicker({
+    numberOfMonths: 1,
+    showButtonPanel: true,
+    defaultDate: now,
+    changeMonth: true,
+    changeYear: true,
+    addSliderAccess: true,
+    sliderAccessArgs: { touchonly: false },
+    onClose: function(dateText, inst) {
+      var startDateTextBox = $('#idate');
+      if (startDateTextBox.val() != '') {
+        var testStartDate = new Date(startDateTextBox.val());
+        var testEndDate = new Date(dateText);
+        if (testStartDate > testEndDate)    startDateTextBox.val(dateText);
+      }
+      else {
+        startDateTextBox.val(dateText);
+      }
+    },
+    onSelect: function (selectedDateTime){
+      var end = $(this).datetimepicker('getDate');
+      $('#idate').datetimepicker('option', 'maxDate', new Date(end.getTime()) );
+    }
+  });
+          
+  $('#fdate').datetimepicker('setDate', now );
+  $('#idate').datetimepicker('setDate', fourDaysAgo );
     
-       
-    var cryoSelector =  document.getElementById('icryovars');
-                 
-     db.view("cryo_2/getData2",  {
-         reduce:true,
-         group_level:1,
-         success:function(data){ 
-             var dataPoints = [];
-
-             jQuery.each(data.rows, function(i, row){
-
-                 var cryoVar = row.key[0]; 
-                 console.log(cryoVar)
-                 var opt = document.createElement("option");
-                 opt.text = cryoVar;
-                 opt.value= cryoVar;
-                 
-                 if (cryoVar == 'T_Bolo'){
-                   console.log(opt)
-                   opt.selected="selected";
-                   cryoSelector.add( opt, null);
-                   cryoSelector.selectedIndex = cryoSelector.length-1;
-                   console.log(cryoSelector.length-1)
-                   //cryoSelector.options[ cryoSelector.length] = new Option(cryoVar, cryoVar, true, true);
-                 }
-                 else {
-                   console.log(opt)
-                   //cryoSelector.options[ cryoSelector.length] = new Option(cryoVar, cryoVar, false, false);
-                   cryoSelector.add( opt, null);
-                 }
-             });
-             
-             getTemperatureFromDbToPlot();
-          },
-          error: function(req, textStatus, errorThrown){alert('Error '+ textStatus);}
-
-     });
-     
+  $('.btn').button();
+ 
+  $("#latestvalues_table").tablesorter( );
+  
+  $('.previousbtn').click( function(e) {
+   if( $('.previousbtn').hasClass('disabled') == false)
+      getPreviousData();
+  });
     
-     $('#getTempsId').click(function(e) {
-
-     	//setTableTopRow();
-
-         //getTemperatureFromDb();                                  
-
-         getTemperatureFromDbToPlot();
-
+  $('.nextbtn').click( function(e) {
+   if( $('.nextbtn').hasClass('disabled') == false)
+      getNextData();
+  }); 
+   
+  $('.latestbtn').click( function(e) {
+    if( $('.latestbtn').hasClass('disabled') == false)
+      getLatestData();
+  });
+      
+  $('#plotButton').click(function(e) {
+    PlotData();
+  });
+    
+  hardwareMapDb.view('map/hv', {
+    reduce:false,
+    descending:true,
+    async:false,
+    success:function(data){
+      jQuery.each(data.rows, function(i, row){
+          //if (hardwareMapDoc.hasKey(data.rows[i]["key"][0] + data.rows[i]["key"][1]) == false)
+          //hardwareMapDoc[ data.rows[i]["key"][0] + data.rows[i]["key"][1] ] = {};
+          //not using the date of the hardwaremap configuration. this is okay for now
+          //since there is only one valid date and the hardware map hasn't changed since then
+          //but this should be supported in the future in the case that the map changes...  
+          hardwareMapDoc[ data.rows[i]["key"][0] + " " + data.rows[i]["key"][1] ] = data.rows[i].value;
+          console.log(hardwareMapDoc)
       });
+      getLatestData(); 
+    }
+  });
+  
+  
     
-     
 });
 
-function getTemperatureFromDbToPlot(){
+function getLatestData()
+{
+  db.view('app/logbydate', {
+    reduce:false,
+    limit:1,
+    descending:true,
+    include_docs:true,
+    success:function(data){
+      highVoltageDoc = data.rows[0]["doc"];
+      fillHighVoltageTable(highVoltageDoc);
+    }
+  });
+}
 
-   var chart;
-   var options = { 
+function getPreviousData()
+{
+  db.view('app/logbydate', {
+    reduce:false,
+    limit:1,
+    descending:true,
+    include_docs:true,
+    success:function(data){
+      highVoltageDoc = data.rows[0]["doc"];
+      fillHighVoltageTable(highVoltageDoc);
+    }
+  });
+}
+function getNextData()
+{
+  db.view('app/logbydate', {
+    reduce:false,
+    limit:1,
+    descending:true,
+    include_docs:true,
+    success:function(data){
+      highVoltageDoc = data.rows[0]["doc"];
+      fillHighVoltageTable(highVoltageDoc);
+    }
+  });
+}
+
+function fillHighVoltageTable(doc)
+{
+     $('.overview_table_body_elements').remove();
+     var docDate = new Date(doc['date_valid']['unixtime']*1000.0);
+     document.getElementById("latestvalues_date").innerHTML = docDate.toUTCString();
+     
+     for (key in hardwareMapDoc) {
+       var row = '<tr class="overview_table_body_elements">'
+       row += '<td>'+key+'</td>';
+       row += '<td>'+hardwareMapDoc[key]+'</td>';
+       row += '<td>'+ doc['values'][hardwareMapDoc[key]]['actual']+'</td>';    
+       row += '<td>'+ doc['values'][hardwareMapDoc[key]]['demand']+'</td>';
+       var diffClass = "";
+       if (Math.abs(doc['values'][hardwareMapDoc[key]]['actual'] - doc['values'][hardwareMapDoc[key]]['demand']) > 10){
+         diffClass = 'class="red-table-element"';
+       } 
+       else {
+         diffClass = 'class="green-table-element"';
+       } 
+       var diffValue = doc['values'][hardwareMapDoc[key]]['actual'] - doc['values'][hardwareMapDoc[key]]['demand'];
+       
+       row += '<td '+diffClass+' >'+ diffValue +'</td>';  
+       row += '<td>'+ doc['values'][hardwareMapDoc[key]]['saved']+'</td>';  
+       row += '<td>'+ doc['values'][hardwareMapDoc[key]]['backup']+'</td>';    
+       $('#latestvalues_table').append(row);
+     }
+     $('.red-table-element').css("color","#f11");
+     $('.green-table-element').css("color","rgb(15,99,30)");
+     
+     
+     $("#latestvalues_table").trigger("update");
+}
+
+function getOptions(){
+  
+  var options = { 
       chart: {
          renderTo: 'chart',
          zoomType: 'xy',
@@ -123,10 +192,7 @@ function getTemperatureFromDbToPlot(){
          //spacingRight: 20
       },
        title: {
-         text: 'Cryogenic Variable vs UTC'
-      },
-       subtitle: {
-          text: 'as reported by Automate server'
+         text: 'Muon Veto HV Actual Values'
       },
       xAxis: {
          type: 'datetime',
@@ -187,17 +253,18 @@ function getTemperatureFromDbToPlot(){
             stickyTracking: false
          }
       },
-			
-      series: [{
-        //type: 'series',
-		name: 'Temperature [mK]',
-		lineWidth: 1
-      }]
     };
-        
-   	
-     var startDate = Date.parse($("#idate").val())/1000.0;
-     var endDate = Date.parse($("#fdate").val())/1000.0;
+    
+    return options;
+}
+
+function PlotData(){
+
+  var chart; 
+  options = getOptions('');
+  
+  var startDate = Date.parse($("#idate").val())/1000.0;
+  var endDate = Date.parse($("#fdate").val())/1000.0;
      
     db.view("cryo_2/getData2",  {
         endkey:[ $('#icryovars').val(), endDate],
@@ -226,66 +293,7 @@ function getTemperatureFromDbToPlot(){
          
     });
     
-    //do it again, but with the reduce = true and group_level = 1
-    db.view("cryo_2/getData2",  {
-        endkey:[ $('#icryovars').val(), endDate],
-        startkey:[$('#icryovars').val(), startDate],
-        group_level:1,
-        success:function(data){ 
-
-            var row = data.rows[0];
-            if (row){
-                var mean = row.value.sum / row.value.count;
-            var stddev = Math.sqrt(row.value.sumsqr/row.value.count - mean*mean);
-            
-            addToStats(mean, stddev, row.value.min, row.value.max, row.value.sum, row.value.count, row.value.sumsqr);
-            }
-            
-            
-         },
-         error: function(req, textStatus, errorThrown){alert('Error '+ textStatus);}
-         
-    });
-    
-}
-
-function addToStats(mean, stddev, min, max, sum, count, sumsqr)
-{
-    var data=document.getElementById("data");
-    while(data.hasChildNodes()){
-        data.removeChild(data.childNodes[0])
-    }
-
-    var meanL = document.createElement('li');
-    meanL.appendChild(document.createTextNode("Mean: " + mean))
-    data.appendChild(meanL);
-    
-    var stddevL = document.createElement('li');
-    stddevL.appendChild(document.createTextNode("StdDev: " +stddev))
-    data.appendChild(stddevL);
-    
-    var minL = document.createElement('li');
-    minL.appendChild(document.createTextNode("Min: " +min))
-    data.appendChild(minL);
-    
-    var maxL = document.createElement('li');
-    maxL.appendChild(document.createTextNode("Max: " +max))
-    data.appendChild(maxL);
-    
-    // var sumL = document.createElement('li');
-    //     sumL.appendChild(document.createTextNode("Sum: " +sum))
-    //     data.appendChild(sumL);
-    //     
-    //     var countL = document.createElement('li');
-    //     countL.appendChild(document.createTextNode("Counts: " +count))
-    //     data.appendChild(countL);
-    //     
-    //     var sumsqrL = document.createElement('li');
-    //     sumsqrL.appendChild(document.createTextNode("Sum of Squares:  " +sumsqr))
-    //     data.appendChild(sumsqrL);   
     
     
-    //$('ul#data').write(statistics);
-
 }
 
