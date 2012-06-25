@@ -86,18 +86,26 @@ $(document).ready(function() {
     PlotData();
   });
     
+  
   hardwareMapDb.view('map/hv', {
     reduce:false,
     descending:true,
     async:false,
     success:function(data){
       jQuery.each(data.rows, function(i, row){
-          //if (hardwareMapDoc.hasKey(data.rows[i]["key"][0] + data.rows[i]["key"][1]) == false)
-          //hardwareMapDoc[ data.rows[i]["key"][0] + data.rows[i]["key"][1] ] = {};
-          //not using the date of the hardwaremap configuration. this is okay for now
+          
+          //potential future problem!
+          //this is not using the date of the hardwaremap configuration. this is okay for now
           //since there is only one valid date and the hardware map hasn't changed since then
           //but this should be supported in the future in the case that the map changes...  
-          hardwareMapDoc[ data.rows[i]["key"][0] + " " + data.rows[i]["key"][1] ] = data.rows[i].value;
+          
+          //... 
+          if ( !(data.rows[i]["key"][0] in hardwareMapDoc)) {
+           hardwareMapDoc[ data.rows[i]["key"][0] ] = {};
+          }
+          hardwareMapDoc[data.rows[i]["key"][0] ][ data.rows[i]["key"][1] ] = data.rows[i].value;
+          hardwareMapDoc[data.rows[i]["key"][0] ][ data.rows[i]["key"][1] ][ "date" ] = data.rows[i]["key"][2];
+          
           console.log(hardwareMapDoc)
       });
       getLatestData(); 
@@ -154,26 +162,32 @@ function fillHighVoltageTable(doc)
      $('.overview_table_body_elements').remove();
      var docDate = new Date(doc['date_valid']['unixtime']*1000.0);
      document.getElementById("latestvalues_date").innerHTML = docDate.toUTCString();
+     console.log(doc)
      
      for (key in hardwareMapDoc) {
-       var row = '<tr class="overview_table_body_elements">'
-       row += '<td>'+key+'</td>';
-       row += '<td>'+hardwareMapDoc[key]+'</td>';
-       row += '<td>'+ doc['values'][hardwareMapDoc[key]]['actual']+'</td>';    
-       row += '<td>'+ doc['values'][hardwareMapDoc[key]]['demand']+'</td>';
-       var diffClass = "";
-       if (Math.abs(doc['values'][hardwareMapDoc[key]]['actual'] - doc['values'][hardwareMapDoc[key]]['demand']) > 10){
+       for (moduleEnd in hardwareMapDoc[key]) {
+        var row = '<tr class="overview_table_body_elements">';
+        row += '<td aligh="right">'+key+'</td>';
+        row += '<td align="left">'+moduleEnd+'</td>';
+        var hvChan = parseInt(hardwareMapDoc[key][moduleEnd]);
+        console.log(hvChan);
+        row += '<td>'+hvChan+'</td>';
+        row += '<td>'+ doc['values'][hvChan]['actual']+'</td>';    
+        row += '<td>'+ doc['values'][hvChan]['demand']+'</td>';
+        var diffClass = "";
+        if (Math.abs(doc['values'][hvChan]['actual'] - doc['values'][hvChan]['demand']) > 10){
          diffClass = 'class="red-table-element"';
-       } 
-       else {
+        } 
+        else {
          diffClass = 'class="green-table-element"';
-       } 
-       var diffValue = doc['values'][hardwareMapDoc[key]]['actual'] - doc['values'][hardwareMapDoc[key]]['demand'];
+        } 
+        var diffValue = doc['values'][hvChan]['actual'] - doc['values'][hvChan]['demand'];
        
-       row += '<td '+diffClass+' >'+ diffValue +'</td>';  
-       row += '<td>'+ doc['values'][hardwareMapDoc[key]]['saved']+'</td>';  
-       row += '<td>'+ doc['values'][hardwareMapDoc[key]]['backup']+'</td>';    
-       $('#latestvalues_table').append(row);
+        row += '<td '+diffClass+' >'+ diffValue +'</td>';  
+        row += '<td>'+ doc['values'][hvChan]['saved']+'</td>';  
+        row += '<td>'+ doc['values'][hvChan]['backup']+'</td>';    
+        $('#latestvalues_table').append(row);
+       }
      }
      $('.red-table-element').css("color","#f11");
      $('.green-table-element').css("color","rgb(15,99,30)");
