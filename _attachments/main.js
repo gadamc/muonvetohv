@@ -1,5 +1,6 @@
 var db = $.couch.db(window.location.pathname.split("/")[1]);
 var hardwareMapDb = $.couch.db('muonvetohardwaremap');
+var webinterfacedb = $.couch.db('webinterface');
 
 var now = new Date();
 var fourDaysAgo = new Date();
@@ -9,6 +10,25 @@ var hardwareMapDoc = {};
 
 $(document).ready(function() {
 
+  //fill in the nav bar at the top of the page
+  //using info in the webinterface database
+  $.couch.db("webinterface").openDoc("navbar", {
+    success: function(data) {
+      console.log(data);
+      var items = [];
+
+      for (var link in data['list']){
+        console.log(link + data['list'][link]);
+        items.push('<li ><a href="' + link + '">' + data['list'][link] + '</a></li>');
+      }
+      console.log(items);
+      $('#navbarList').append( items.join('') );
+
+    }
+  });
+
+
+  
 
   $('#idate').datetimepicker({
     numberOfMonths: 1,
