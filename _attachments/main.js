@@ -14,14 +14,11 @@ $(document).ready(function() {
   //using info in the webinterface database
   $.couch.db("webinterface").openDoc("navbar", {
     success: function(data) {
-      console.log(data);
       var items = [];
 
       for (var link in data['list']){
-        console.log(link + data['list'][link]);
         items.push('<li ><a href="' + link + '">' + data['list'][link] + '</a></li>');
       }
-      console.log(items);
       $('#navbarList').append( items.join('') );
 
     }
@@ -126,7 +123,6 @@ $(document).ready(function() {
           hardwareMapDoc[data.rows[i]["key"][0] ][ data.rows[i]["key"][1] ] = data.rows[i].value;
           hardwareMapDoc[data.rows[i]["key"][0] ][ data.rows[i]["key"][1] ][ "date" ] = data.rows[i]["key"][2];
           
-          console.log(hardwareMapDoc)
       });
       getLatestData(); 
     }
@@ -182,7 +178,6 @@ function fillHighVoltageTable(doc)
      $('.overview_table_body_elements').remove();
      var docDate = new Date(doc['date_valid']['unixtime']*1000.0);
      document.getElementById("latestvalues_date").innerHTML = docDate.toUTCString();
-     console.log(doc)
      
      for (key in hardwareMapDoc) {
        for (moduleEnd in hardwareMapDoc[key]) {
@@ -190,7 +185,6 @@ function fillHighVoltageTable(doc)
         row += '<td aligh="right">'+key+'</td>';
         row += '<td align="left">'+moduleEnd+'</td>';
         var hvChan = parseInt(hardwareMapDoc[key][moduleEnd]);
-        console.log(hvChan);
         row += '<td>'+hvChan+'</td>';
         row += '<td>'+ doc['values'][hvChan]['actual']+'</td>';    
         row += '<td>'+ doc['values'][hvChan]['demand']+'</td>';
