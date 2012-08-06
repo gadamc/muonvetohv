@@ -8,6 +8,80 @@ fourDaysAgo.setDate(fourDaysAgo.getDate() - 4);
 var highVoltageDoc = {};
 var hardwareMapDoc = {};
 
+var dateOfDataOnDisplay = 0;
+var timeBetweenMeasures = 30.0; //30 minutes between measures.. 
+
+var dataForPlots = new Array();
+
+
+var plotContainer = [];
+plotContainer.push([1,2,3,4,5,6]);
+plotContainer.push([7,8,9,10,11,12,13,14]);
+plotContainer.push([15,16,17,18,19,20,21,22]);
+plotContainer.push([23,24,25,26,27,28]);
+plotContainer.push([29,30,31,32]);
+plotContainer.push([33,34,35,36,37,38]);
+plotContainer.push([39,40,41,42,43]);
+plotContainer.push([44,45,46,47,48]);
+plotContainer.push([49,50,51]);
+
+lb = function () { return document.createElement( 'BR' ); }
+
+// fill plots container
+for (var i = 0; i < plotContainer.length; i++){
+  header = document.createElement("h3");
+  header.innerHTML = "Modules: " + plotContainer[i][0] + "-" + plotContainer[i][plotContainer[i].length - 1];
+  document.getElementById('plotscontainer').appendChild(  header );
+  document.getElementById('plotscontainer').appendChild( lb() );
+  var divId = "plots-data-" + plotContainer[i][0] + "-" + plotContainer[i][plotContainer[i].length - 1];
+  nr = document.createElement("div");
+  nr.setAttribute("class", "row");
+  dv=document.createElement("div");
+  dv.setAttribute("class", "span12");
+  //dv.setAttribute("style", "width: 990px; margin: 0 auto")
+  dv.setAttribute("id", divId);
+  count = 0;
+  var currentRow = document.createElement("div");
+  currentRow.setAttribute("class", "row");
+  for (var ii = 0; ii< plotContainer[i].length; ii++) {
+    moddv=document.createElement('div');
+    moddv.setAttribute("class", "span4");
+    moddv.setAttribute("style", "height: 200px")
+    moddv.setAttribute("id", "module_" + plotContainer[i][ii]);
+    console.log(moddv.outerHTML);
+    currentRow.appendChild(moddv);
+
+    count += 1;
+    if (count % 3 == 0) {
+      dv.appendChild(currentRow);
+      currentRow = document.createElement("div");
+      currentRow.setAttribute("class", "row");
+    }
+
+  }
+  dv.appendChild(currentRow);
+  nr.appendChild(dv);
+  document.getElementById('plotscontainer').appendChild(nr);
+  document.getElementById('plotscontainer').appendChild( lb() );
+  document.getElementById('plotscontainer').appendChild( lb() );
+
+} 
+//  <div id="plots-data-1-6" class="span12">
+// <div class="span6" id="module1" style="width: 400px; height: 200px; margin: 0 auto"></div>
+//                   </div>
+//                   <div id="plots-data-7-14" style="width: 400px; height: 200px; margin: 0 auto"></div>
+//                   <div id="plots-data-15-22" style="width: 400px; height: 200px; margin: 0 auto"></div>
+//                   <div id="plots-data-23-28" style="width: 400px; height: 200px; margin: 0 auto"></div>
+//                   <div id="plots-data-29-32" style="width: 400px; height: 200px; margin: 0 auto"></div>
+//                   <div id="plots-data-33-38" style="width: 400px; height: 200px; margin: 0 auto"></div>
+//                   <div id="plots-data-39-43" style="width: 400px; height: 200px; margin: 0 auto"></div>
+//                   <div id="plots-data-44-48" style="width: 400px; height: 200px; margin: 0 auto"></div>
+//                   <div id="plots-data-49-51" style="width: 400px; height: 200px; margin: 0 auto"></div>
+
+//txt=document.createTextNode('this is d3');
+//dv.appendChild(txt);
+//document.getElementById('plotscontainer').appendChild(dv);
+
 $(document).ready(function() {
 
   //fill in the nav bar at the top of the page
@@ -100,7 +174,7 @@ $(document).ready(function() {
   });
       
   $('#plotButton').click(function(e) {
-    PlotData();
+    getDataAndPlot();
   });
     
   
@@ -119,7 +193,9 @@ $(document).ready(function() {
           //... 
           if ( !(data.rows[i]["key"][0] in hardwareMapDoc)) {
            hardwareMapDoc[ data.rows[i]["key"][0] ] = {};
+           console.log("adding to hardware map doc " + data.rows[i]["key"][0] );
           }
+          console.log("   adding to hardware map doc " + data.rows[i]["key"][0] + " " + data.rows[i]["key"][1] + " = " + data.rows[i].value );
           hardwareMapDoc[data.rows[i]["key"][0] ][ data.rows[i]["key"][1] ] = data.rows[i].value;
           hardwareMapDoc[data.rows[i]["key"][0] ][ data.rows[i]["key"][1] ][ "date" ] = data.rows[i]["key"][2];
           
@@ -127,14 +203,30 @@ $(document).ready(function() {
       getLatestData(); 
     }
   });
-  
-  
+
+  getDataAndPlot();
     
 });
 
-function getLatestData()
+function getDateObjectForKeyArray(d)
+{
+  return new Date(d[0], d[1]-1, d[2], d[3], d[4], d[5], 0);  
+}
+
+function setNewDateForDataOnDisplay(d)
+{
+  dateOfDataOnDisplay = getDateObjectForKeyArray(d);
+}
+
+function getKeyArrayFromDateObject(nd)
+{
+  return [nd.getFullYear(), nd.getMonth()+1, nd.getDate(), nd.getHours(), nd.getMinutes(), nd.getSeconds()];
+}
+
+function getDataFromDateKey(skey)
 {
   db.view('app/logbydate', {
+    startkey: skey,
     reduce:false,
     limit:1,
     descending:true,
@@ -142,35 +234,32 @@ function getLatestData()
     success:function(data){
       highVoltageDoc = data.rows[0]["doc"];
       fillHighVoltageTable(highVoltageDoc);
+      setNewDateForDataOnDisplay( data.rows[0]["key"] );
     }
   });
+}
+
+
+function getLatestData()
+{
+  var now = new Date();
+  getDataFromDateKey( getKeyArrayFromDateObject( now ) );
+
 }
 
 function getPreviousData()
 {
-  db.view('app/logbydate', {
-    reduce:false,
-    limit:1,
-    descending:true,
-    include_docs:true,
-    success:function(data){
-      highVoltageDoc = data.rows[0]["doc"];
-      fillHighVoltageTable(highVoltageDoc);
-    }
-  });
+  var nd = new Date(dateOfDataOnDisplay);
+  nd.setMinutes(nd.getMinutes() - timeBetweenMeasures + 5.0);
+  getDataFromDateKey( getKeyArrayFromDateObject(nd) );
+
 }
 function getNextData()
 {
-  db.view('app/logbydate', {
-    reduce:false,
-    limit:1,
-    descending:true,
-    include_docs:true,
-    success:function(data){
-      highVoltageDoc = data.rows[0]["doc"];
-      fillHighVoltageTable(highVoltageDoc);
-    }
-  });
+  var nd = new Date(dateOfDataOnDisplay);
+  nd.setMinutes(nd.getMinutes() + timeBetweenMeasures + 5.0);
+  getDataFromDateKey( getKeyArrayFromDateObject(nd) );
+
 }
 
 function fillHighVoltageTable(doc)
@@ -210,17 +299,17 @@ function fillHighVoltageTable(doc)
      $("#latestvalues_table").trigger("update");
 }
 
-function getOptions(){
+function getOptions(renderToId, chartTitle){
   
   var options = { 
       chart: {
-         renderTo: 'chart',
+         renderTo: renderToId,
          zoomType: 'xy',
          animation: false
          //spacingRight: 20
       },
        title: {
-         text: 'Muon Veto HV Actual Values'
+         text: chartTitle
       },
       xAxis: {
          type: 'datetime',
@@ -246,7 +335,7 @@ function getOptions(){
                     x: 3,
                     y: -2,
                     formatter: function() {
-                        return Highcharts.numberFormat(this.value, 5);
+                        return Highcharts.numberFormat(this.value, 0);
                     }
                 }
       },
@@ -271,7 +360,7 @@ function getOptions(){
                   [1, 'rgba(2,0,0,0)']
                ]
             },*/
-            lineWidth: 1,
+            lineWidth: 2,
             marker: {
                enabled: false
             },
@@ -286,41 +375,122 @@ function getOptions(){
     return options;
 }
 
-function PlotData(){
+function getDataAndPlot()
+{
+  console.log(Date.parse($("#idate").val()));
+  console.log(Date.parse($("#fdate").val()));
+  
+  var skey = getKeyArrayFromDateObject( new Date( Date.parse($("#idate").val()) ) );
+  var ekey = getKeyArrayFromDateObject( new Date( Date.parse($("#fdate").val()) ) );
+  console.log(ekey);
+  console.log(skey);
+  db.view('app/logbydate', {
+    startkey: ekey,
+    endkey: skey,
+    reduce:false,
+    descending:true,
+    include_docs:true,
+    success:function(data){
+      dataForPlots = new Array();
+      $.each(data.rows, function(i, row){
+        dateOfData = getDateObjectForKeyArray(row["doc"])
+        dataForPlots.push([row["doc"]["date_valid"]["unixtime"], row["doc"]["values"] ]);
+      });
+      PlotData();
+    }
+  });
+
+}
+
+function PlotData()
+{
 
   var chart; 
-  options = getOptions('');
-  
-  var startDate = Date.parse($("#idate").val())/1000.0;
-  var endDate = Date.parse($("#fdate").val())/1000.0;
-     
-    db.view("cryo_2/getData2",  {
-        endkey:[ $('#icryovars').val(), endDate],
-        startkey:[$('#icryovars').val(), startDate],
-        reduce:false,
-        success:function(data){ 
-            var dataPoints = [];
-            
-            jQuery.each(data.rows, function(i, row){
-                
-                var number = row.value;  
-                var tnum = new Number(number+'').toFixed(parseInt(10));
-                var value = parseFloat(tnum);
-                if($('#icryovars').val() == 'P_regul')
-                   value = value*1000000.0;
-                var currentdate =  row.key[1]*1000.0;
-                dataPoints.push([currentdate, value]);
 
-            });
-            
-            options.series[0].data = dataPoints;
-            options.series[0].name = $('#icryovars').val();
-            chart = new Highcharts.Chart(options);
-         }
-         
-    });
-    
-    
-    
+  for (var i = 0; i < plotContainer.length; i++){
+    for (var ii = 0; ii <  plotContainer[i].length; ii++ ) {
+      console.log("plot containter index: " + i + "-" + ii + " = " + plotContainer[i][ii]);
+      if (hardwareMapDoc.hasOwnProperty( plotContainer[i][ii] ) ) {
+        console.log("hardwareDoc has " + plotContainer[i][ii]);
+        options = getOptions( "module_" + plotContainer[i][ii], plotContainer[i][ii] );
+        options["series"] = [];
+        for (moduleEnd in hardwareMapDoc[ plotContainer[i][ii] ]) {
+          console.log("plotting " + plotContainer[i][ii] + " " + moduleEnd);
+          dataSeries = {};
+          dataSeries["name"] = moduleEnd;
+
+          var data = [];
+          for(var row in dataForPlots){
+            //if(plotContainer[i][ii] == 13)
+              //console.log(parseInt(dataForPlots[row][1][ parseInt(hardwareMapDoc[ plotContainer[i][ii] ][moduleEnd]) ]["actual"] ));
+            data.push([ dataForPlots[row][0]*1000.0, parseInt(dataForPlots[row][1][ parseInt(hardwareMapDoc[ plotContainer[i][ii] ][moduleEnd]) ]["actual"] ) ] )
+          }
+          dataSeries["data"] = data;
+          //console.log(data.length);
+          options.series.push(dataSeries);
+
+        }
+        //if(plotContainer[i][ii] == 13)
+          //console.log(options);
+
+        //console.log(options.chart.renderTo);
+        try{
+          chart = new Highcharts.Chart(options);
+        }
+        catch(err)
+        {
+          console.log(err);
+          console.log(document.getElementById(options.chart.renderTo));
+        }
+      }
+      else{
+        console.log(" does NOT NOT NOT have " + plotContainer[i][ii]);
+      }
+    }
+  }
+
 }
+
+
+//add cube stuff.....
+// var props = 'transform WebkitTransform MozTransform OTransform msTransform'.split(' '),
+//   prop,
+//   el = document.createElement('div');
+
+// var xAngle = 0, yAngle = 0;
+// for(var i = 0, l = props.length; i < l; i++) {
+//     if(typeof el.style[props[i]] !== "undefined") {
+//       prop = props[i];
+//       break;
+//     }
+//   }
+
+// console.log('here');
+
+// $('body').keydown(function(evt)
+//   { 
+//     console.log('in key down...');
+//     console.log('key down! ' + evt.keyCode);
+//     switch(evt.keyCode)
+//     {
+//       case 37: // left
+//         yAngle -= 90;
+//         break;
+
+//       case 38: // up
+//         xAngle += 90;
+//         break;
+
+//       case 39: // right
+//         yAngle += 90;
+//         break;
+
+//       case 40: // down
+//         xAngle -= 90;
+//         break;
+//     }
+
+//     document.getElementById('cube').style[prop] = "rotateX("+xAngle+"deg) rotateY("+yAngle+"deg)";
+//   }, false);
+
 

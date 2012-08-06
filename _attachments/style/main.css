@@ -1,74 +1,48 @@
-/* add styles here */
-
-body {
-  font:1em Helvetica, sans-serif;
+/*  for the 3D cube */
+#experiment {
+  -webkit-perspective: 800;
+  -webkit-perspective-origin: 50% 200px;
 }
 
-h1 {
-  margin-top:0;
+#cube {
+      position: relative;
+      margin: 0 auto;
+      height: 400px;
+      width: 400px;
+      -webkit-transition: -webkit-transform 2s linear;
+      -webkit-transform-style: preserve-3d;
 }
 
-#account {
-  float:right;
+.face {
+      position: absolute;
+      height: 360px;
+      width: 360px;
+      padding: 20px;
+      background-color: rgba(50, 50, 50, 0.7);
 }
 
-#profile {
-  border:4px solid #edd;
-  background:#fee;
-  padding:8px;
-  margin-bottom:8px;
+#cube .one  {
+  -webkit-transform: rotateX(90deg) translateZ(200px);
 }
 
-#content {
-  border:4px solid #dde;
-  background:#eef;
-  padding:8px;
-  width:60%;
-  float:left;
+#cube .two {
+  -webkit-transform: translateZ(200px);
 }
 
-#sidebar {
-  border:4px solid #dfd;
-  padding:8px;
-  float:right;
-  width:30%;
+#cube .three {
+  -webkit-transform: rotateY(90deg) translateZ(200px);
 }
 
-#items li {
-  border:4px solid #f5f5ff;
-  background:#fff;
-  padding:8px;
-  margin:4px 0;
+#cube .four {
+  -webkit-transform: rotateY(180deg) translateZ(200px);
 }
 
-form {
-  padding:4px;
-  margin:6px;
-  background-color:#ddd;  
+#cube .five {
+  -webkit-transform: rotateY(-90deg) translateZ(200px);
 }
 
-div.avatar {
-  padding:2px;
-  padding-bottom:0;
-  margin-right:4px;
-  float:left;
-  font-size:0.78em;
-  width : 60px;
-  height : 60px;
-  text-align: center;
+#cube .six {
+  -webkit-transform: rotateX(-90deg) translateZ(200px) rotate(180deg);
 }
 
-div.avatar .name {
-  padding-top:2px;
-}
 
-div.avatar img {
-  margin:0 auto;
-  padding:0;
-  width : 40px;
-  height : 40px;
-}
-
-ul {
-  list-style: none;
-}
