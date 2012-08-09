@@ -13,6 +13,7 @@ var timeBetweenMeasures = 30.0; //30 minutes between measures..
 
 var dataForPlots = new Array();
 
+var individualChart;
 
 var plotContainer = [];
 plotContainer.push([1,2,3,4,5,6]);
@@ -556,12 +557,6 @@ function getIndividualChartOption(chartTitle){
                         return Highcharts.numberFormat(this.value, 0);
                     }
                 }
-      },
-      tooltip: {
-      formatter: function() {
-          return '<b>'+ this.series.name +'</b><br/>'+
-          this.x +': '+ this.y +' V';
-      }
       },
       legend: {
         align: 'left',
