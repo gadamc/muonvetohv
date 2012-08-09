@@ -622,7 +622,8 @@ function getIndividualDataAndPlot()
     var hvChannel = parseInt(hardwareMapDoc[module][modEnd]);
     var skey = [hvChannel, endDate];
     var ekey = [hvChannel, startDate];
-
+    console.log(skey);
+    console.log(ekey);
     db.view('app/hvread_bychannel_unixtime', {
       startkey: skey,
       endkey: ekey,
@@ -630,15 +631,16 @@ function getIndividualDataAndPlot()
       descending:true,
       include_docs:false,
       success:function(data){
-        dataToPlot = [];
-        $.each(data.rows, function(i, row){
-            dataToPlot.push([row["key"][1], row["values"] ]);
-        });
-      
         dataSeries = {
           name: modEnd,
-          data: dataToPlot
+          data: []
         };
+
+        $.each(data.rows, function(i, row){
+            dataSeries.data.push([row["key"][1], row["values"] ]);
+        });
+      
+        console.log('adding to chart: ' + dataSeries.name);
 
         individualChart.addSeries(dataSeries);
       
