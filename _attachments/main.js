@@ -612,10 +612,10 @@ function addToIndividualChart(individualChart, modEnd, skey, ekey)
 
         $.each(data.rows, function(i, row){
             dataSeries.data.push([row["key"][1], row["value"] ]);
-            console.log( row["key"][1], row["value"]);
+            //console.log( row["key"][1], row["value"]);
         });
       
-        console.log('adding to chart: ' + dataSeries.name);
+        //console.log('adding to chart: ' + dataSeries.name);
 
         individualChart.addSeries(dataSeries);
       
@@ -627,13 +627,7 @@ function addToIndividualChart(individualChart, modEnd, skey, ekey)
 function getIndividualDataAndPlot()
 {
 
-  //var skeyArray = getKeyArrayFromDateObject( new Date( Date.parse($("#idate_i").val()) ) );
-  //var ekeyArray = getKeyArrayFromDateObject( new Date( Date.parse($("#fdate_i").val()) ) );
-  
-  //console.log(skeyArray);
 
-  //var startDate = Date.UTC( skeyArray );
-  //var endDate = Date.UTC( ekeyArray );
   startDate = Date.parse($("#idate_i").val());
   endDate = Date.parse($("#fdate_i").val());
 
@@ -659,12 +653,7 @@ function getIndividualDataAndPlot()
     hvChannel = parseInt(hardwareMapDoc[module][modEnd]);
     skey = [hvChannel, endDate];
     ekey = [hvChannel, startDate];
-    //console.log(skey);
-    //console.log(ekey);
-    //console.log(modEnd);
-    //console.log(module);
-    //console.log( hardwareMapDoc[module][modEnd]);
-    //console.log(hardwareMapDoc[module]);
+
 
     addToIndividualChart(individualChart, modEnd, skey, ekey);
 
