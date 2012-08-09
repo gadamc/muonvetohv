@@ -611,8 +611,8 @@ function addToIndividualChart(individualChart, modEnd, skey, ekey)
         };
 
         $.each(data.rows, function(i, row){
-            dataSeries.data.push([row["key"][1], row["values"] ]);
-            console.log( row["key"][1], row["values"]);
+            dataSeries.data.push([row["key"][1], row["value"] ]);
+            console.log( row["key"][1], row["value"]);
         });
       
         console.log('adding to chart: ' + dataSeries.name);
