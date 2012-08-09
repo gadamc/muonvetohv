@@ -4,7 +4,7 @@ var webinterfacedb = $.couch.db('webinterface');
 
 var now = new Date();
 var fourDaysAgo = new Date();
-fourDaysAgo.setDate(fourDaysAgo.getDate() - 4);
+fourDaysAgo.setDate(fourDaysAgo.getDate() - 8);
 var highVoltageDoc = {};
 var hardwareMapDoc = {};
 
@@ -453,7 +453,7 @@ function getDataAndPlot()
 {
 
   $('#plotButton').button('loading');
-  
+
   var skey = getKeyArrayFromDateObject( new Date( Date.parse($("#idate").val()) ) );
   var ekey = getKeyArrayFromDateObject( new Date( Date.parse($("#fdate").val()) ) );
 
