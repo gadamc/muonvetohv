@@ -526,6 +526,7 @@ function getIndividualChartOption(chartTitle){
          renderTo: "individualPlot",
          zoomType: 'xy',
          animation: true
+         
          //spacingRight: 20
       },
        title: {
