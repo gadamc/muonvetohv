@@ -222,7 +222,7 @@ $(document).ready(function() {
   $('#fdate_i').datetimepicker('setDate', now );
   $('#idate_i').datetimepicker('setDate', fourDaysAgo );
 
-  $('.nav-tabs').button();
+  $('.btn').button();
  
   $("#latestvalues_table").tablesorter( );
   
@@ -453,7 +453,7 @@ function getDataAndPlot()
 {
 
   $('#plotButton').button('loading');
-
+  
   var skey = getKeyArrayFromDateObject( new Date( Date.parse($("#idate").val()) ) );
   var ekey = getKeyArrayFromDateObject( new Date( Date.parse($("#fdate").val()) ) );
 
