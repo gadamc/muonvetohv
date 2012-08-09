@@ -222,7 +222,7 @@ $(document).ready(function() {
   $('#fdate_i').datetimepicker('setDate', now );
   $('#idate_i').datetimepicker('setDate', fourDaysAgo );
 
-  $('.btn').button();
+  $('.nav-tabs').button();
  
   $("#latestvalues_table").tablesorter( );
   
@@ -242,7 +242,7 @@ $(document).ready(function() {
   });
       
   $('#plotButton').click(function(e) {
-    $('#plotButton').button('loading');
+    
     getDataAndPlot();
   });
 
@@ -452,7 +452,8 @@ function getOptions(renderToId, chartTitle){
 function getDataAndPlot()
 {
 
-  
+  $('#plotButton').button('loading');
+
   var skey = getKeyArrayFromDateObject( new Date( Date.parse($("#idate").val()) ) );
   var ekey = getKeyArrayFromDateObject( new Date( Date.parse($("#fdate").val()) ) );
 
