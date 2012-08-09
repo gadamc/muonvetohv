@@ -526,7 +526,7 @@ function getIndividualChartOption(chartTitle){
          renderTo: "individualPlot",
          zoomType: 'xy',
          animation: true
-         
+
          //spacingRight: 20
       },
        title: {
@@ -583,7 +583,7 @@ function getIndividualChartOption(chartTitle){
             },*/
             lineWidth: 2,
             marker: {
-               enabled: false
+               enabled: true
             },
             shadow: false, 
             animation: true,
