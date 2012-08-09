@@ -18,12 +18,12 @@ var plotContainer = [];
 plotContainer.push([1,2,3,4,5,6]);
 plotContainer.push([7,8,9,10,11,12,13,14]);
 plotContainer.push([15,16,17,18,19,20,21,22]);
-plotContainer.push([23,24,25,26,27,28]);
+plotContainer.push([25,26,27,28]);
 plotContainer.push([29,30,31,32]);
 plotContainer.push([33,34,35,36,37,38]);
 plotContainer.push([39,40,41,42,43]);
 plotContainer.push([44,45,46,47,48]);
-plotContainer.push([49,50,51]);
+plotContainer.push([50,51]);
 
 lb = function () { return document.createElement( 'BR' ); }
 
@@ -44,6 +44,19 @@ for (var i = 0; i < plotContainer.length; i++){
   var currentRow = document.createElement("div");
   currentRow.setAttribute("class", "row");
   for (var ii = 0; ii< plotContainer[i].length; ii++) {
+    selector = document.getElementById('moduleselect');
+    option=document.createElement("option");
+    option.text=plotContainer[i][ii];
+    try
+    {
+      // for IE earlier than version 8
+      selector.add(option,x.options[null]);
+    }
+    catch (e)
+    {
+      selector.add(option,null);
+    }
+
     moddv=document.createElement('div');
     moddv.setAttribute("class", "span4");
     moddv.setAttribute("style", "height: 200px")
@@ -154,6 +167,60 @@ $(document).ready(function() {
   $('#fdate').datetimepicker('setDate', now );
   $('#idate').datetimepicker('setDate', fourDaysAgo );
     
+
+  $('#idate_i').datetimepicker({
+    numberOfMonths: 1,
+    showButtonPanel: true,
+    changeMonth: true,
+    changeYear: true,
+    defaultDate: fourDaysAgo,
+    addSliderAccess: true,
+    sliderAccessArgs: { touchonly: false },
+    onClose: function(dateText, inst) {
+      var endDateTextBox = $('#fdate_i');
+      if (endDateTextBox.val() != '') {
+        var testStartDate = new Date(dateText);
+        var testEndDate = new Date(endDateTextBox.val());
+        if (testStartDate > testEndDate) endDateTextBox.val(dateText);
+      }
+      else {
+        endDateTextBox.val(dateText);
+      }
+    },
+    onSelect: function (selectedDateTime){
+        var start = $(this).datetimepicker('getDate');
+        $('#fdate_i').datetimepicker('option', 'minDate', new Date(start.getTime()));
+      }
+  });
+          
+  $('#fdate_i').datetimepicker({
+    numberOfMonths: 1,
+    showButtonPanel: true,
+    defaultDate: now,
+    changeMonth: true,
+    changeYear: true,
+    addSliderAccess: true,
+    sliderAccessArgs: { touchonly: false },
+    onClose: function(dateText, inst) {
+      var startDateTextBox = $('#idate_i');
+      if (startDateTextBox.val() != '') {
+        var testStartDate = new Date(startDateTextBox.val());
+        var testEndDate = new Date(dateText);
+        if (testStartDate > testEndDate)    startDateTextBox.val(dateText);
+      }
+      else {
+        startDateTextBox.val(dateText);
+      }
+    },
+    onSelect: function (selectedDateTime){
+      var end = $(this).datetimepicker('getDate');
+      $('#idate_i').datetimepicker('option', 'maxDate', new Date(end.getTime()) );
+    }
+  });
+          
+  $('#fdate_i').datetimepicker('setDate', now );
+  $('#idate_i').datetimepicker('setDate', fourDaysAgo );
+
   $('.btn').button();
  
   $("#latestvalues_table").tablesorter( );
@@ -175,6 +242,10 @@ $(document).ready(function() {
       
   $('#plotButton').click(function(e) {
     getDataAndPlot();
+  });
+
+  $('#plotIndividualButton').click(function(e) {
+    getIndividualDataAndPlot();
   });
     
   
@@ -377,13 +448,12 @@ function getOptions(renderToId, chartTitle){
 
 function getDataAndPlot()
 {
-  console.log(Date.parse($("#idate").val()));
-  console.log(Date.parse($("#fdate").val()));
+
   
   var skey = getKeyArrayFromDateObject( new Date( Date.parse($("#idate").val()) ) );
   var ekey = getKeyArrayFromDateObject( new Date( Date.parse($("#fdate").val()) ) );
-  console.log(ekey);
-  console.log(skey);
+
+
   db.view('app/logbydate', {
     startkey: ekey,
     endkey: skey,
@@ -393,7 +463,7 @@ function getDataAndPlot()
     success:function(data){
       dataForPlots = new Array();
       $.each(data.rows, function(i, row){
-        dateOfData = getDateObjectForKeyArray(row["doc"])
+        //dateOfData = getDateObjectForKeyArray(row["doc"])
         dataForPlots.push([row["doc"]["date_valid"]["unixtime"], row["doc"]["values"] ]);
       });
       PlotData();
@@ -409,13 +479,13 @@ function PlotData()
 
   for (var i = 0; i < plotContainer.length; i++){
     for (var ii = 0; ii <  plotContainer[i].length; ii++ ) {
-      console.log("plot containter index: " + i + "-" + ii + " = " + plotContainer[i][ii]);
+
       if (hardwareMapDoc.hasOwnProperty( plotContainer[i][ii] ) ) {
-        console.log("hardwareDoc has " + plotContainer[i][ii]);
+
         options = getOptions( "module_" + plotContainer[i][ii], plotContainer[i][ii] );
         options["series"] = [];
         for (moduleEnd in hardwareMapDoc[ plotContainer[i][ii] ]) {
-          console.log("plotting " + plotContainer[i][ii] + " " + moduleEnd);
+
           dataSeries = {};
           dataSeries["name"] = moduleEnd;
 
@@ -443,13 +513,141 @@ function PlotData()
           console.log(document.getElementById(options.chart.renderTo));
         }
       }
-      else{
-        console.log(" does NOT NOT NOT have " + plotContainer[i][ii]);
-      }
+      
     }
   }
 
 }
+
+function getIndividualChartOption(chartTitle){
+  
+  var options = { 
+      chart: {
+         renderTo: "individualPlot",
+         zoomType: 'xy',
+         animation: true
+         //spacingRight: 20
+      },
+       title: {
+         text: chartTitle
+      },
+      xAxis: {
+         type: 'datetime',
+         maxZoom: 1000.0* 60.0 * 60.0, // 60 minutes
+         title: {
+            text: null
+         },
+         dateTimeLabelFormats: {
+            day: '%e %b',
+            hour: '%e %b %H:%M'   
+         },
+         showFirstLabel : false
+      },
+      yAxis: {
+         title: {
+            text: null
+         },
+         //min: 0.6,
+         //startOnTick: false,
+         showFirstLabel: false,
+         labels: {
+                    align: 'left',
+                    x: 3,
+                    y: -2,
+                    formatter: function() {
+                        return Highcharts.numberFormat(this.value, 0);
+                    }
+                }
+      },
+      legend: {
+      align: 'left',
+      verticalAlign: 'top',
+      y: 20,
+      x: 80,
+      floating: true,
+      borderWidth: 0
+      },
+      tooltip: {
+         shared: true,
+         enabled: true
+      },
+      plotOptions: {
+         series: {
+            /*fillColor: {
+               linearGradient: [0, 0, 0, 300],
+               stops: [
+                  [0, Highcharts.theme.colors[0]],
+                  [1, 'rgba(2,0,0,0)']
+               ]
+            },*/
+            lineWidth: 2,
+            marker: {
+               enabled: false
+            },
+            shadow: false, 
+            animation: false,
+            enableMouseTracking: false,
+            stickyTracking: false
+         }
+      },
+    };
+    
+    return options;
+}
+
+function getIndividualDataAndPlot()
+{
+
+  
+  var startDate = new Date( Date.parse($("#idate_i").val()) );
+  var endDate = new Date( Date.parse($("#fdate_i").val()) );
+
+  selector = document.getElementById('moduleselect');
+  var module = selector.options[selector.selectedIndex].text;
+  var hvChannel = [];
+  var chartOptions = getIndividualChartOption("Module " + module);
+  chartOptions["series"] = [];
+  
+
+  try {
+    var individualChart = new Highcharts.Chart(chartOptions);
+  }
+  catch(err) {
+    console.log(err);
+    console.log(document.getElementById(options.individualChart.renderTo));
+    return;
+  }
+
+  for (var modEnd in hardwareMapDoc[module]){
+    var hvChannel = parseInt(hardwareMapDoc[module][modEnd]);
+    var skey = [hvChannel, endDate.UTC()];
+    var ekey = [hvChannel, startDate.UTC()];
+
+    db.view('app/hvread_bychannel_unixtime', {
+      startkey: skey,
+      endkey: ekey,
+      reduce:false,
+      descending:true,
+      include_docs:false,
+      success:function(data){
+        dataToPlot = [];
+        $.each(data.rows, function(i, row){
+            dataToPlot.push([row["key"][1], row["values"] ]);
+        });
+      
+        dataSeries = {
+          name: modEnd,
+          data = dataToPlot
+        };
+
+        individualChart.addSeries(dataSeries);
+      
+      }      
+    });
+  }
+  
+}
+
 
 
 //add cube stuff.....
