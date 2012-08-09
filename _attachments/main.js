@@ -636,6 +636,7 @@ function getIndividualDataAndPlot()
       reduce:false,
       descending:true,
       include_docs:false,
+      async:false,
       success:function(data){
         dataSeries = {
           name: modEnd,
