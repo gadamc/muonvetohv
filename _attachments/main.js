@@ -601,9 +601,13 @@ function getIndividualDataAndPlot()
   var skeyArray = getKeyArrayFromDateObject( new Date( Date.parse($("#idate_i").val()) ) );
   var ekeyArray = getKeyArrayFromDateObject( new Date( Date.parse($("#fdate_i").val()) ) );
   
+  console.log(skeyArray);
+  
   var startDate = Date.UTC( skeyArray );
   var endDate = Date.UTC( ekeyArray );
 
+  console.log(endDate);
+  console.log(startDate);
   selector = document.getElementById('moduleselect');
   var module = selector.options[selector.selectedIndex].text;
   var hvChannel = [];
