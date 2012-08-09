@@ -598,13 +598,15 @@ function getIndividualChartOption(chartTitle){
 function getIndividualDataAndPlot()
 {
 
-  var skeyArray = getKeyArrayFromDateObject( new Date( Date.parse($("#idate_i").val()) ) );
-  var ekeyArray = getKeyArrayFromDateObject( new Date( Date.parse($("#fdate_i").val()) ) );
+  //var skeyArray = getKeyArrayFromDateObject( new Date( Date.parse($("#idate_i").val()) ) );
+  //var ekeyArray = getKeyArrayFromDateObject( new Date( Date.parse($("#fdate_i").val()) ) );
   
-  console.log(skeyArray);
-  
-  var startDate = Date.UTC( skeyArray );
-  var endDate = Date.UTC( ekeyArray );
+  //console.log(skeyArray);
+
+  //var startDate = Date.UTC( skeyArray );
+  //var endDate = Date.UTC( ekeyArray );
+  startDate = Date.parse($("#idate_i").val());
+  endDate = Date.parse($("#fdate_i").val());
 
   console.log(endDate);
   console.log(startDate);
