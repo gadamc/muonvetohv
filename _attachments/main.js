@@ -585,9 +585,9 @@ function getIndividualChartOption(chartTitle){
                enabled: false
             },
             shadow: false, 
-            animation: false,
-            enableMouseTracking: false,
-            stickyTracking: false
+            animation: true,
+            enableMouseTracking: true,
+            stickyTracking: true
          }
       },
     };
