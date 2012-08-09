@@ -595,6 +595,35 @@ function getIndividualChartOption(chartTitle){
     return options;
 }
 
+function addToIndividualChart(individualChart, modEnd, skey, ekey)
+{
+  db.view('app/hvread_bychannel_unixtime', {
+      startkey: skey,
+      endkey: ekey,
+      reduce:false,
+      descending:true,
+      include_docs:false,
+      async:false,
+      success:function(data){
+        dataSeries = {
+          name: modEnd,
+          data: []
+        };
+
+        $.each(data.rows, function(i, row){
+            dataSeries.data.push([row["key"][1], row["values"] ]);
+            console.log( row["key"][1], row["values"]);
+        });
+      
+        console.log('adding to chart: ' + dataSeries.name);
+
+        individualChart.addSeries(dataSeries);
+      
+      }      
+    });
+}
+
+
 function getIndividualDataAndPlot()
 {
 
@@ -611,9 +640,9 @@ function getIndividualDataAndPlot()
   console.log(endDate);
   console.log(startDate);
   selector = document.getElementById('moduleselect');
-  var module = selector.options[selector.selectedIndex].text;
-  var hvChannel = [];
-  var chartOptions = getIndividualChartOption("Module " + module);
+  module = selector.options[selector.selectedIndex].text;
+  hvChannel = [];
+  chartOptions = getIndividualChartOption("Module " + module);
   chartOptions["series"] = [];
   
 
@@ -626,39 +655,20 @@ function getIndividualDataAndPlot()
     return;
   }
 
-  for (var modEnd in hardwareMapDoc[module]){
-    var hvChannel = parseInt(hardwareMapDoc[module][modEnd]);
-    var skey = [hvChannel, endDate];
-    var ekey = [hvChannel, startDate];
-    console.log(skey);
-    console.log(ekey);
-    console.log(modEnd);
-    console.log(module);
-    console.log( hardwareMapDoc[module][modEnd]);
-    console.log(hardwareMapDoc[module]);
-    db.view('app/hvread_bychannel_unixtime', {
-      startkey: skey,
-      endkey: ekey,
-      reduce:false,
-      descending:true,
-      include_docs:false,
-      async:false,
-      success:function(data){
-        dataSeries = {
-          name: modEnd,
-          data: []
-        };
+  for (modEnd in hardwareMapDoc[module]){
+    hvChannel = parseInt(hardwareMapDoc[module][modEnd]);
+    skey = [hvChannel, endDate];
+    ekey = [hvChannel, startDate];
+    //console.log(skey);
+    //console.log(ekey);
+    //console.log(modEnd);
+    //console.log(module);
+    //console.log( hardwareMapDoc[module][modEnd]);
+    //console.log(hardwareMapDoc[module]);
 
-        $.each(data.rows, function(i, row){
-            dataSeries.data.push([row["key"][1], row["values"] ]);
-        });
-      
-        console.log('adding to chart: ' + dataSeries.name);
+    addToIndividualChart(individualChart, modEnd, skey, ekey);
 
-        individualChart.addSeries(dataSeries);
-      
-      }      
-    });
+    
   }
 
 }
