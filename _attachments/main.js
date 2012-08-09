@@ -637,7 +637,7 @@ function getIndividualDataAndPlot()
       
         dataSeries = {
           name: modEnd,
-          data = dataToPlot
+          data: dataToPlot
         };
 
         individualChart.addSeries(dataSeries);
@@ -645,7 +645,7 @@ function getIndividualDataAndPlot()
       }      
     });
   }
-  
+
 }
 
 
