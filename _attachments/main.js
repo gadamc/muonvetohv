@@ -524,7 +524,7 @@ function getIndividualChartOption(chartTitle){
   var options = { 
       chart: {
          renderTo: "individualPlot",
-         zoomType: 'x',
+         zoomType: 'xy',
          animation: true
 
          //spacingRight: 20
@@ -556,6 +556,12 @@ function getIndividualChartOption(chartTitle){
                         return Highcharts.numberFormat(this.value, 0);
                     }
                 }
+      },
+      tooltip: {
+      formatter: function() {
+          return '<b>'+ this.series.name +'</b><br/>'+
+          this.x +': '+ this.y +' V';
+      }
       },
       legend: {
         align: 'left',
