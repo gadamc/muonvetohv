@@ -598,9 +598,11 @@ function getIndividualChartOption(chartTitle){
 function getIndividualDataAndPlot()
 {
 
+  var skeyArray = getKeyArrayFromDateObject( new Date( Date.parse($("#idate_i").val()) ) );
+  var ekeyArray = getKeyArrayFromDateObject( new Date( Date.parse($("#fdate_i").val()) ) );
   
-  var startDate = Date.UTC( Date.parse($("#idate_i").val()) );
-  var endDate = Date.UTC( Date.parse($("#fdate_i").val()) );
+  var startDate = Date.UTC( skeyArray );
+  var endDate = Date.UTC( ekeyArray );
 
   selector = document.getElementById('moduleselect');
   var module = selector.options[selector.selectedIndex].text;
@@ -624,6 +626,10 @@ function getIndividualDataAndPlot()
     var ekey = [hvChannel, startDate];
     console.log(skey);
     console.log(ekey);
+    console.log(modEnd);
+    console.log(module);
+    console.log( hardwareMapDoc[module][modEnd]);
+    console.log(hardwareMapDoc[module]);
     db.view('app/hvread_bychannel_unixtime', {
       startkey: skey,
       endkey: ekey,
