@@ -242,10 +242,12 @@ $(document).ready(function() {
   });
       
   $('#plotButton').click(function(e) {
+    $('#plotButton').button('loading');
     getDataAndPlot();
   });
 
   $('#plotIndividualButton').click(function(e) {
+    $('#plotIndividualButton').button('loading');
     getIndividualDataAndPlot();
   });
     
@@ -518,6 +520,8 @@ function PlotData()
     }
   }
 
+  $('#plotButton').button('reset');
+
 }
 
 function getIndividualChartOption(chartTitle){
@@ -603,7 +607,7 @@ function addToIndividualChart(individualChart, modEnd, skey, ekey)
         //console.log('adding to chart: ' + dataSeries.name);
 
         individualChart.addSeries(dataSeries);
-      
+        $('#plotIndividualButton').button('reset');
       }      
     });
 }
