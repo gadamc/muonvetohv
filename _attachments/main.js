@@ -524,7 +524,7 @@ function getIndividualChartOption(chartTitle){
   var options = { 
       chart: {
          renderTo: "individualPlot",
-         zoomType: 'xy',
+         zoomType: 'x',
          animation: true
 
          //spacingRight: 20
@@ -545,9 +545,6 @@ function getIndividualChartOption(chartTitle){
          showFirstLabel : false
       },
       yAxis: {
-         title: {
-            text: null
-         },
          //min: 0.6,
          //startOnTick: false,
          showFirstLabel: false,
@@ -561,34 +558,20 @@ function getIndividualChartOption(chartTitle){
                 }
       },
       legend: {
-      align: 'left',
-      verticalAlign: 'top',
-      y: 20,
-      x: 80,
-      floating: true,
-      borderWidth: 0
-      },
-      tooltip: {
-         shared: true,
-         enabled: true
+        align: 'left',
+        verticalAlign: 'top',
+        y: 20,
+        x: 80,
+        floating: true,
+        borderWidth: 0
       },
       plotOptions: {
          series: {
-            /*fillColor: {
-               linearGradient: [0, 0, 0, 300],
-               stops: [
-                  [0, Highcharts.theme.colors[0]],
-                  [1, 'rgba(2,0,0,0)']
-               ]
-            },*/
             lineWidth: 2,
             marker: {
-               enabled: true
+               enabled: false
             },
-            shadow: false, 
-            animation: true,
-            enableMouseTracking: true,
-            stickyTracking: true
+            shadow: false
          }
       },
     };
