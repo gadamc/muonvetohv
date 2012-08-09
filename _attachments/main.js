@@ -599,8 +599,8 @@ function getIndividualDataAndPlot()
 {
 
   
-  var startDate = new Date( Date.parse($("#idate_i").val()) );
-  var endDate = new Date( Date.parse($("#fdate_i").val()) );
+  var startDate = Date.UTC( Date.parse($("#idate_i").val()) );
+  var endDate = Date.UTC( Date.parse($("#fdate_i").val()) );
 
   selector = document.getElementById('moduleselect');
   var module = selector.options[selector.selectedIndex].text;
@@ -620,8 +620,8 @@ function getIndividualDataAndPlot()
 
   for (var modEnd in hardwareMapDoc[module]){
     var hvChannel = parseInt(hardwareMapDoc[module][modEnd]);
-    var skey = [hvChannel, endDate.UTC()];
-    var ekey = [hvChannel, startDate.UTC()];
+    var skey = [hvChannel, endDate];
+    var ekey = [hvChannel, startDate];
 
     db.view('app/hvread_bychannel_unixtime', {
       startkey: skey,
