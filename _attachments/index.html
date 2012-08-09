@@ -142,7 +142,8 @@
             
             <ul class="nav nav-tabs" id="mytab">
               <li class="active"><a href="#tab-latestvalues-container" data-toggle="tab">latest</a></li>
-              <li><a href="#tab-plots-container" data-toggle="tab">plots</a></li>
+              <li><a href="#tab-plots-container" data-toggle="tab">all module plots</a></li>
+              <li><a href="#tab-individualplot-container" data-toggle="tab">single module plot</a></li>
             </ul>
                     
             <!-- define the tabs -->
@@ -206,32 +207,9 @@
                   </div>
                 </div> <!-- date selector --> 
                 
-                  <br><br>
-                  <!-- <div id="plots-data">
-                  <br><br>
-                  <div id="experiment">
-                    <div id="cube">
-                      <div class="face one">
-                        Top. Modules 1 - 8
-                      </div>
-                      <div class="face two">
-                        Nord. Modules 9 - 15, 39, 40
-                      </div>
-                      <div class="face three">
-                        Nemo. Modules 25 - 28, 41 - 43
-                      </div>
-                      <div class="face four">
-                        Sud. Modules 16 - 22, 36, 38
-                      </div>
-                      <div class="face five">
-                        Est. Modules 29 - 35
-                      </div>
-                      <div class="face six">
-                        Bottom. Modules 44 - 48
-                      </div>
-                    </div>
-                  </div> -->
-                  <div id="plotscontainer" style="padding: 0px 30px;"></div>
+                <br><br>
+                  
+                <div id="plotscontainer" style="padding: 0px 30px;"></div>
                 </div> <!-- plots-container -->  
                  
 
@@ -251,13 +229,12 @@
                       <label class="input-label">End Date</label>
                       <input id="fdate_i" name="fdate_i" placeholder="month/day/year" class="input-box ui-widget-content ui-corner-all" style="width:150px"/>
                     </div>        
-                  
                   </div>
                 </div> <!-- date selector --> 
                 
-                  <br><br>
+                <br><br>
                   
-                  <div id="individual_plotscontainer" style="padding: 0px 30px;"></div>
+                <div id="individual_plotscontainer" style="padding: 0px 30px;"></div>
                   <div class="row">
                     <div class="span10" style="height: 600px" id="individualPlot"></div>
                   </div>
