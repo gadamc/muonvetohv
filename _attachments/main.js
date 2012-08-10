@@ -243,7 +243,7 @@ $(document).ready(function() {
       
   $('#plotButton').click(function(e) {
     
-    getDataAndPlot();
+    getDataAndPlot2();
   });
 
   $('#plotIndividualButton').click(function(e) {
@@ -275,10 +275,12 @@ $(document).ready(function() {
           
       });
       getLatestData(); 
+
+      getDataAndPlot2();
+
     }
   });
 
-  getDataAndPlot();
     
 });
 
@@ -379,7 +381,7 @@ function getOptions(renderToId, chartTitle){
       chart: {
          renderTo: renderToId,
          zoomType: 'xy',
-         animation: false
+         animation: true
          //spacingRight: 20
       },
        title: {
@@ -387,7 +389,7 @@ function getOptions(renderToId, chartTitle){
       },
       xAxis: {
          type: 'datetime',
-         maxZoom: 1000.0* 60.0 * 60.0, // 60 minutes
+         minRange: 1000.0* 60.0 * 60.0, // 60 minutes
          title: {
             text: null
          },
@@ -439,7 +441,7 @@ function getOptions(renderToId, chartTitle){
                enabled: false
             },
             shadow: false, 
-            animation: false,
+            animation: true,
             enableMouseTracking: false,
             stickyTracking: false
          }
@@ -449,81 +451,124 @@ function getOptions(renderToId, chartTitle){
     return options;
 }
 
-function getDataAndPlot()
+// function getDataAndPlot()
+// {
+
+//   $('#plotButton').button('loading');
+
+//   var skey = getKeyArrayFromDateObject( new Date( Date.parse($("#idate").val()) ) );
+//   var ekey = getKeyArrayFromDateObject( new Date( Date.parse($("#fdate").val()) ) );
+
+
+//   db.view('app/logbydate', {
+//     startkey: ekey,
+//     endkey: skey,
+//     reduce:false,
+//     descending:true,
+//     include_docs:true,
+//     success:function(data){
+//       dataForPlots = new Array();
+//       $.each(data.rows, function(i, row){
+//         //dateOfData = getDateObjectForKeyArray(row["doc"])
+//         dataForPlots.push([row["doc"]["date_valid"]["unixtime"], row["doc"]["values"] ]);
+//       });
+//       PlotData();
+//     }
+//   });
+
+// }
+
+function getDataAndPlot2()
 {
 
-  $('#plotButton').button('loading');
+  startDate = Date.parse($("#idate").val());
+  endDate = Date.parse($("#fdate").val());
+    
 
-  var skey = getKeyArrayFromDateObject( new Date( Date.parse($("#idate").val()) ) );
-  var ekey = getKeyArrayFromDateObject( new Date( Date.parse($("#fdate").val()) ) );
+  for (module in hardwareMapDoc){
 
+    chartOptions = getOptions("module_" + module, module);
+    chartOptions["series"] = [];
 
-  db.view('app/logbydate', {
-    startkey: ekey,
-    endkey: skey,
-    reduce:false,
-    descending:true,
-    include_docs:true,
-    success:function(data){
-      dataForPlots = new Array();
-      $.each(data.rows, function(i, row){
-        //dateOfData = getDateObjectForKeyArray(row["doc"])
-        dataForPlots.push([row["doc"]["date_valid"]["unixtime"], row["doc"]["values"] ]);
-      });
-      PlotData();
+    try {
+      var individualChart = new Highcharts.Chart(chartOptions);
     }
-  });
+    catch(err) {
+      console.log(err);
+      console.log(document.getElementById(options.individualChart.renderTo));
+      return;
+    }
 
-}
 
-function PlotData()
-{
+    for (modEnd in hardwareMapDoc[module]){
+      hvChannel = parseInt(hardwareMapDoc[module][modEnd]);
+      skey = [hvChannel, endDate];
+      ekey = [hvChannel, startDate];
 
-  var chart; 
 
-  for (var i = 0; i < plotContainer.length; i++){
-    for (var ii = 0; ii <  plotContainer[i].length; ii++ ) {
+      //addToIndividualChart(individualChart, modEnd, skey, ekey);
 
-      if (hardwareMapDoc.hasOwnProperty( plotContainer[i][ii] ) ) {
+      addToIndividualChart(individualChart, 
+      modEnd, 
+      skey, 
+      ekey, 
+      function (){
+        $('#plotButton').button('reset');
+      });
 
-        options = getOptions( "module_" + plotContainer[i][ii], plotContainer[i][ii] );
-        options["series"] = [];
-        for (moduleEnd in hardwareMapDoc[ plotContainer[i][ii] ]) {
-
-          dataSeries = {};
-          dataSeries["name"] = moduleEnd;
-
-          var data = [];
-          for(var row in dataForPlots){
-            //if(plotContainer[i][ii] == 13)
-              //console.log(parseInt(dataForPlots[row][1][ parseInt(hardwareMapDoc[ plotContainer[i][ii] ][moduleEnd]) ]["actual"] ));
-            data.push([ dataForPlots[row][0]*1000.0, parseInt(dataForPlots[row][1][ parseInt(hardwareMapDoc[ plotContainer[i][ii] ][moduleEnd]) ]["actual"] ) ] )
-          }
-          dataSeries["data"] = data;
-          //console.log(data.length);
-          options.series.push(dataSeries);
-
-        }
-        //if(plotContainer[i][ii] == 13)
-          //console.log(options);
-
-        //console.log(options.chart.renderTo);
-        try{
-          chart = new Highcharts.Chart(options);
-        }
-        catch(err)
-        {
-          console.log(err);
-          console.log(document.getElementById(options.chart.renderTo));
-        }
-      }
-      
     }
   }
 
-  $('#plotButton').button('reset');
-
 }
+
+// function PlotData()
+// {
+
+//   var chart; 
+
+//   for (var i = 0; i < plotContainer.length; i++){
+//     for (var ii = 0; ii <  plotContainer[i].length; ii++ ) {
+
+//       if (hardwareMapDoc.hasOwnProperty( plotContainer[i][ii] ) ) {
+
+//         options = getOptions( "module_" + plotContainer[i][ii], plotContainer[i][ii] );
+//         options["series"] = [];
+//         for (moduleEnd in hardwareMapDoc[ plotContainer[i][ii] ]) {
+
+//           dataSeries = {};
+//           dataSeries["name"] = moduleEnd;
+
+//           var data = [];
+//           for(var row in dataForPlots){
+//             //if(plotContainer[i][ii] == 13)
+//               //console.log(parseInt(dataForPlots[row][1][ parseInt(hardwareMapDoc[ plotContainer[i][ii] ][moduleEnd]) ]["actual"] ));
+//             data.push([ dataForPlots[row][0]*1000.0, parseInt(dataForPlots[row][1][ parseInt(hardwareMapDoc[ plotContainer[i][ii] ][moduleEnd]) ]["actual"] ) ] )
+//           }
+//           dataSeries["data"] = data;
+//           //console.log(data.length);
+//           options.series.push(dataSeries);
+
+//         }
+//         //if(plotContainer[i][ii] == 13)
+//           //console.log(options);
+
+//         //console.log(options.chart.renderTo);
+//         try{
+//           chart = new Highcharts.Chart(options);
+//         }
+//         catch(err)
+//         {
+//           console.log(err);
+//           console.log(document.getElementById(options.chart.renderTo));
+//         }
+//       }
+      
+//     }
+//   }
+
+//   $('#plotButton').button('reset');
+
+// }
 
 function getIndividualChartOption(chartTitle){
   
@@ -540,7 +585,7 @@ function getIndividualChartOption(chartTitle){
       },
       xAxis: {
          type: 'datetime',
-         maxZoom: 1000.0* 60.0 * 60.0, // 60 minutes
+         minRange: 1000.0* 60.0 * 60.0, // 60 minutes
          title: {
             text: null
          },
@@ -585,7 +630,7 @@ function getIndividualChartOption(chartTitle){
     return options;
 }
 
-function addToIndividualChart(individualChart, modEnd, skey, ekey)
+function addToIndividualChart(individualChart, modEnd, skey, ekey, callbackFunction)
 {
   db.view('app/hvread_bychannel_unixtime', {
       startkey: skey,
@@ -608,24 +653,22 @@ function addToIndividualChart(individualChart, modEnd, skey, ekey)
         //console.log('adding to chart: ' + dataSeries.name);
 
         individualChart.addSeries(dataSeries);
-        $('#plotIndividualButton').button('reset');
+        callbackFunction();
+        
       }      
     });
 }
 
 
+
 function getIndividualDataAndPlot()
 {
-
 
   startDate = Date.parse($("#idate_i").val());
   endDate = Date.parse($("#fdate_i").val());
 
-  console.log(endDate);
-  console.log(startDate);
   selector = document.getElementById('moduleselect');
   module = selector.options[selector.selectedIndex].text;
-  hvChannel = [];
   chartOptions = getIndividualChartOption("Module " + module);
   chartOptions["series"] = [];
   
@@ -639,19 +682,24 @@ function getIndividualDataAndPlot()
     return;
   }
 
+  
   for (modEnd in hardwareMapDoc[module]){
     hvChannel = parseInt(hardwareMapDoc[module][modEnd]);
     skey = [hvChannel, endDate];
     ekey = [hvChannel, startDate];
 
 
-    addToIndividualChart(individualChart, modEnd, skey, ekey);
+    addToIndividualChart(individualChart, 
+      modEnd, 
+      skey, 
+      ekey, 
+      function (){
+        $('#plotIndividualButton').button('reset');
+    });
 
-    
   }
 
 }
-
 
 
 //add cube stuff.....
