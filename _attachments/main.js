@@ -80,22 +80,9 @@ for (var i = 0; i < plotContainer.length; i++){
   document.getElementById('plotscontainer').appendChild( lb() );
 
 } 
-//  <div id="plots-data-1-6" class="span12">
-// <div class="span6" id="module1" style="width: 400px; height: 200px; margin: 0 auto"></div>
-//                   </div>
-//                   <div id="plots-data-7-14" style="width: 400px; height: 200px; margin: 0 auto"></div>
-//                   <div id="plots-data-15-22" style="width: 400px; height: 200px; margin: 0 auto"></div>
-//                   <div id="plots-data-23-28" style="width: 400px; height: 200px; margin: 0 auto"></div>
-//                   <div id="plots-data-29-32" style="width: 400px; height: 200px; margin: 0 auto"></div>
-//                   <div id="plots-data-33-38" style="width: 400px; height: 200px; margin: 0 auto"></div>
-//                   <div id="plots-data-39-43" style="width: 400px; height: 200px; margin: 0 auto"></div>
-//                   <div id="plots-data-44-48" style="width: 400px; height: 200px; margin: 0 auto"></div>
-//                   <div id="plots-data-49-51" style="width: 400px; height: 200px; margin: 0 auto"></div>
 
-//txt=document.createTextNode('this is d3');
-//dv.appendChild(txt);
-//document.getElementById('plotscontainer').appendChild(dv);
 
+//asynchronous javascript starts here. This first function is exectued once the page is loaded.
 $(document).ready(function() {
 
   //fill in the nav bar at the top of the page
@@ -451,32 +438,7 @@ function getOptions(renderToId, chartTitle){
     return options;
 }
 
-// function getDataAndPlot()
-// {
 
-//   $('#plotButton').button('loading');
-
-//   var skey = getKeyArrayFromDateObject( new Date( Date.parse($("#idate").val()) ) );
-//   var ekey = getKeyArrayFromDateObject( new Date( Date.parse($("#fdate").val()) ) );
-
-
-//   db.view('app/logbydate', {
-//     startkey: ekey,
-//     endkey: skey,
-//     reduce:false,
-//     descending:true,
-//     include_docs:true,
-//     success:function(data){
-//       dataForPlots = new Array();
-//       $.each(data.rows, function(i, row){
-//         //dateOfData = getDateObjectForKeyArray(row["doc"])
-//         dataForPlots.push([row["doc"]["date_valid"]["unixtime"], row["doc"]["values"] ]);
-//       });
-//       PlotData();
-//     }
-//   });
-
-// }
 
 function getDataAndPlot2()
 {
@@ -506,7 +468,6 @@ function getDataAndPlot2()
       ekey = [hvChannel, startDate];
 
 
-      //addToIndividualChart(individualChart, modEnd, skey, ekey);
 
       addToIndividualChart(individualChart, 
       modEnd, 
@@ -521,54 +482,7 @@ function getDataAndPlot2()
 
 }
 
-// function PlotData()
-// {
 
-//   var chart; 
-
-//   for (var i = 0; i < plotContainer.length; i++){
-//     for (var ii = 0; ii <  plotContainer[i].length; ii++ ) {
-
-//       if (hardwareMapDoc.hasOwnProperty( plotContainer[i][ii] ) ) {
-
-//         options = getOptions( "module_" + plotContainer[i][ii], plotContainer[i][ii] );
-//         options["series"] = [];
-//         for (moduleEnd in hardwareMapDoc[ plotContainer[i][ii] ]) {
-
-//           dataSeries = {};
-//           dataSeries["name"] = moduleEnd;
-
-//           var data = [];
-//           for(var row in dataForPlots){
-//             //if(plotContainer[i][ii] == 13)
-//               //console.log(parseInt(dataForPlots[row][1][ parseInt(hardwareMapDoc[ plotContainer[i][ii] ][moduleEnd]) ]["actual"] ));
-//             data.push([ dataForPlots[row][0]*1000.0, parseInt(dataForPlots[row][1][ parseInt(hardwareMapDoc[ plotContainer[i][ii] ][moduleEnd]) ]["actual"] ) ] )
-//           }
-//           dataSeries["data"] = data;
-//           //console.log(data.length);
-//           options.series.push(dataSeries);
-
-//         }
-//         //if(plotContainer[i][ii] == 13)
-//           //console.log(options);
-
-//         //console.log(options.chart.renderTo);
-//         try{
-//           chart = new Highcharts.Chart(options);
-//         }
-//         catch(err)
-//         {
-//           console.log(err);
-//           console.log(document.getElementById(options.chart.renderTo));
-//         }
-//       }
-      
-//     }
-//   }
-
-//   $('#plotButton').button('reset');
-
-// }
 
 function getIndividualChartOption(chartTitle){
   
@@ -700,47 +614,5 @@ function getIndividualDataAndPlot()
   }
 
 }
-
-
-//add cube stuff.....
-// var props = 'transform WebkitTransform MozTransform OTransform msTransform'.split(' '),
-//   prop,
-//   el = document.createElement('div');
-
-// var xAngle = 0, yAngle = 0;
-// for(var i = 0, l = props.length; i < l; i++) {
-//     if(typeof el.style[props[i]] !== "undefined") {
-//       prop = props[i];
-//       break;
-//     }
-//   }
-
-// console.log('here');
-
-// $('body').keydown(function(evt)
-//   { 
-//     console.log('in key down...');
-//     console.log('key down! ' + evt.keyCode);
-//     switch(evt.keyCode)
-//     {
-//       case 37: // left
-//         yAngle -= 90;
-//         break;
-
-//       case 38: // up
-//         xAngle += 90;
-//         break;
-
-//       case 39: // right
-//         yAngle += 90;
-//         break;
-
-//       case 40: // down
-//         xAngle -= 90;
-//         break;
-//     }
-
-//     document.getElementById('cube').style[prop] = "rotateX("+xAngle+"deg) rotateY("+yAngle+"deg)";
-//   }, false);
 
 
