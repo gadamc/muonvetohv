@@ -1,4 +1,4 @@
 function(doc) {
-  if(doc.type == 'muonvetohvlog')
-  emit([doc.date_valid['year'], doc.date_valid['month'], doc.date_valid['day'], doc.date_valid['hour'], doc.date_valid['minute'], doc.date_valid['second']], 1);
+  if(doc.type == 'muonvetohvlog' && doc.date_valid_unixtime)
+  emit(doc.date_valid_unixtime, 1);
 }

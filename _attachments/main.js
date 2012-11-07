@@ -4,14 +4,18 @@ var webinterfacedb = $.couch.db('webinterface');
 
 var now = new Date();
 var fourDaysAgo = new Date();
-fourDaysAgo.setDate(fourDaysAgo.getDate() - 8);
+fourDaysAgo.setDate(fourDaysAgo.getDate() - 1);
+
 var highVoltageDoc = {};
+
 var hardwareMapDoc = {};
 
 var dateOfDataOnDisplay = 0;
 var timeBetweenMeasures = 30.0; //30 minutes between measures.. 
 
 var dataForPlots = new Array();
+
+var totalNumberOfRows = 0;
 
 var individualChart;
 
@@ -230,7 +234,7 @@ $(document).ready(function() {
       
   $('#plotButton').click(function(e) {
     
-    getDataAndPlot2();
+    getDataAndPlot();
   });
 
   $('#plotIndividualButton').click(function(e) {
@@ -239,6 +243,13 @@ $(document).ready(function() {
   });
     
   
+  
+  getLatestData();  //fill the table
+    
+});
+
+function getMapForCurrentDate(obj)
+{
   hardwareMapDb.view('map/hv', {
     reduce:false,
     descending:true,
@@ -251,7 +262,8 @@ $(document).ready(function() {
           //since there is only one valid date and the hardware map hasn't changed since then
           //but this should be supported in the future in the case that the map changes...  
           
-          //... 
+          //... at the same time, don't use the webpage for official data!!!
+
           if ( !(data.rows[i]["key"][0] in hardwareMapDoc)) {
            hardwareMapDoc[ data.rows[i]["key"][0] ] = {};
            console.log("adding to hardware map doc " + data.rows[i]["key"][0] );
@@ -260,17 +272,18 @@ $(document).ready(function() {
           hardwareMapDoc[data.rows[i]["key"][0] ][ data.rows[i]["key"][1] ] = data.rows[i].value;
           hardwareMapDoc[data.rows[i]["key"][0] ][ data.rows[i]["key"][1] ][ "date" ] = data.rows[i]["key"][2];
           
+          totalNumberOfRows = totalNumberOfRows + 1;
+
       });
-      getLatestData(); 
+      console.log('number of rows after hardware map ' + totalNumberOfRows.toString());  
 
-      getDataAndPlot2();
-
+      obj.success();
     }
   });
 
-    
-});
+  
 
+}
 function getDateObjectForKeyArray(d)
 {
   return new Date(d[0], d[1]-1, d[2], d[3], d[4], d[5], 0);  
@@ -288,6 +301,12 @@ function getKeyArrayFromDateObject(nd)
 
 function getDataFromDateKey(skey)
 {
+
+  //first, fill the hardware map based on this date
+  //then, with the map filled, fill the table.
+
+
+
   db.view('app/logbydate', {
     startkey: skey,
     reduce:false,
@@ -295,6 +314,9 @@ function getDataFromDateKey(skey)
     descending:true,
     include_docs:true,
     success:function(data){
+      totalNumberOfRows = totalNumberOfRows + 1;
+      console.log('new number of rows ' + totalNumberOfRows.toString());        
+
       highVoltageDoc = data.rows[0]["doc"];
       fillHighVoltageTable(highVoltageDoc);
       setNewDateForDataOnDisplay( data.rows[0]["key"] );
@@ -306,7 +328,17 @@ function getDataFromDateKey(skey)
 function getLatestData()
 {
   var now = new Date();
-  getDataFromDateKey( getKeyArrayFromDateObject( now ) );
+  
+  getMapForCurrentDate( now, {
+    success:function(){        
+      
+      getDataFromDateKey( getKeyArrayFromDateObject( now ) );
+
+      
+    }
+  });
+
+  
 
 }
 
@@ -440,7 +472,7 @@ function getOptions(renderToId, chartTitle){
 
 
 
-function getDataAndPlot2()
+function getDataAndPlot()
 {
 
   startDate = Date.parse($("#idate").val());
@@ -546,6 +578,7 @@ function getIndividualChartOption(chartTitle){
 
 function addToIndividualChart(individualChart, modEnd, skey, ekey, callbackFunction)
 {
+
   db.view('app/hvread_bychannel_unixtime', {
       startkey: skey,
       endkey: ekey,
@@ -562,13 +595,14 @@ function addToIndividualChart(individualChart, modEnd, skey, ekey, callbackFunct
         $.each(data.rows, function(i, row){
             dataSeries.data.push([row["key"][1], row["value"] ]);
             //console.log( row["key"][1], row["value"]);
+            totalNumberOfRows = totalNumberOfRows + 1;
         });
       
         //console.log('adding to chart: ' + dataSeries.name);
 
         individualChart.addSeries(dataSeries);
         callbackFunction();
-        
+        console.log('new number of rows ' + totalNumberOfRows.toString());        
       }      
     });
 }
