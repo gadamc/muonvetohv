@@ -1,24 +1,35 @@
 var db = $.couch.db(window.location.pathname.split("/")[1]);
 var hardwareMapDb = $.couch.db('muonvetohardwaremap');
 var webinterfacedb = $.couch.db('webinterface');
+var appName = window.location.pathname.split("/")[3];
+
 
 var now = new Date();
 var fourDaysAgo = new Date();
 fourDaysAgo.setDate(fourDaysAgo.getDate() - 1);
 
-var highVoltageDoc = {};
+//var highVoltageDoc = {};
 
 var hardwareMapDoc = {};
 
 var dateOfDataOnDisplay = 0;
 var timeBetweenMeasures = 30.0; //30 minutes between measures.. 
 
-var dataForPlots = new Array();
+//var dataForPlots = new Array();
 
 var totalNumberOfRows = 0;
 
 var individualChart;
 
+var allChannelList = [];
+
+
+//
+//
+//
+// fill plots container
+//
+//
 var plotContainer = [];
 plotContainer.push([1,2,3,4,5,6]);
 plotContainer.push([7,8,9,10,11,12,13,14]);
@@ -29,10 +40,16 @@ plotContainer.push([33,34,35,36,37,38]);
 plotContainer.push([39,40,41,42,43]);
 plotContainer.push([44,45,46,47,48]);
 plotContainer.push([50,51]);
-
 lb = function () { return document.createElement( 'BR' ); }
+//
+//
+// the following script must be run first before any asynchronous page loading.
+//
+// this script fills the plotscontainer with all of the individual plot elements
+// which will later be filled with data
+//
+//
 
-// fill plots container
 for (var i = 0; i < plotContainer.length; i++){
   header = document.createElement("h3");
   header.innerHTML = "Modules: " + plotContainer[i][0] + "-" + plotContainer[i][plotContainer[i].length - 1];
@@ -66,7 +83,7 @@ for (var i = 0; i < plotContainer.length; i++){
     moddv.setAttribute("class", "span4");
     moddv.setAttribute("style", "height: 200px")
     moddv.setAttribute("id", "module_" + plotContainer[i][ii]);
-    console.log(moddv.outerHTML);
+    //console.log(moddv.outerHTML);
     currentRow.appendChild(moddv);
 
     count += 1;
@@ -85,12 +102,20 @@ for (var i = 0; i < plotContainer.length; i++){
 
 } 
 
-
+//
+//
+//
 //asynchronous javascript starts here. This first function is exectued once the page is loaded.
+//
+//
+//
 $(document).ready(function() {
 
-  //fill in the nav bar at the top of the page
-  //using info in the webinterface database
+  //
+  // fill in the nav bar at the top of the page
+  // using info in the webinterface database
+  //
+  //
   $.couch.db("webinterface").openDoc("navbar", {
     success: function(data) {
       var items = [];
@@ -104,7 +129,15 @@ $(document).ready(function() {
   });
 
 
+
+  //
+  //
+  //
+
+  //boiler-plate timepicker setup.....
   
+  //
+  //
 
   $('#idate').datetimepicker({
     numberOfMonths: 1,
@@ -213,9 +246,25 @@ $(document).ready(function() {
   $('#fdate_i').datetimepicker('setDate', now );
   $('#idate_i').datetimepicker('setDate', fourDaysAgo );
 
-  $('.btn').button();
- 
+
+
+  //
+  //
+  // end of boiler plate for the datetimepicker objects
+  //
+  //
+  //
+  //
+
+
+
+  // make the table sortable
   $("#latestvalues_table").tablesorter( );
+
+
+
+  // set up the buttons
+  $('.btn').button();
   
   $('.previousbtn').click( function(e) {
    if( $('.previousbtn').hasClass('disabled') == false)
@@ -229,11 +278,10 @@ $(document).ready(function() {
    
   $('.latestbtn').click( function(e) {
     if( $('.latestbtn').hasClass('disabled') == false)
-      getLatestData();
+      fillTableForDate();
   });
       
   $('#plotButton').click(function(e) {
-    
     getDataAndPlot();
   });
 
@@ -242,103 +290,211 @@ $(document).ready(function() {
     getIndividualDataAndPlot();
   });
     
+
+  //$('#latestvalues_table').ajaxComplete(function(e, xhr, settings) {
+  //   console.log('\n and ajax request was completed\n!' )
+
+  //   console.log(e);
+  //   console.log(xhr);
+  //   console.log(settings);
+  //   $("#latestvalues_table").trigger("update");
+
+  //   //i don't think i need to set this, right? 
+  //   //i've included ithis is the css/style.css file
+  //   //
+  //   //$('.red-table-element').css("color","#f11");
+  //   //$('.green-table-element').css("color","rgb(15,99,30)");
+
+  // if (settings.url == 'ajax/test.html') {
+  //   $(this).text('Triggered ajaxComplete handler. The result is ' +
+  //                    xhr.responseHTML);
+  // }
+
+  //});
+
+
+  //
+  //get the list of high voltage modules and their ends
+  //and then fill the table
+  //
+  fillAllChannelList(function(){
+    //console.log(allChannelList);
+    fillTableForDate();  //fill the table
+  });
   
-  
-  getLatestData();  //fill the table
     
+
 });
 
-function getMapForCurrentDate(obj)
+function fillAllChannelList(callbackFunction)
 {
   hardwareMapDb.view('map/hv', {
-    reduce:false,
-    descending:true,
-    async:false,
+    reduce:true,
+    group_level:2,
     success:function(data){
-      jQuery.each(data.rows, function(i, row){
-          
-          //potential future problem!
-          //this is not using the date of the hardwaremap configuration. this is okay for now
-          //since there is only one valid date and the hardware map hasn't changed since then
-          //but this should be supported in the future in the case that the map changes...  
-          
-          //... at the same time, don't use the webpage for official data!!!
+      allChannelList = [];
 
-          if ( !(data.rows[i]["key"][0] in hardwareMapDoc)) {
-           hardwareMapDoc[ data.rows[i]["key"][0] ] = {};
-           console.log("adding to hardware map doc " + data.rows[i]["key"][0] );
-          }
-          console.log("   adding to hardware map doc " + data.rows[i]["key"][0] + " " + data.rows[i]["key"][1] + " = " + data.rows[i].value );
-          hardwareMapDoc[data.rows[i]["key"][0] ][ data.rows[i]["key"][1] ] = data.rows[i].value;
-          hardwareMapDoc[data.rows[i]["key"][0] ][ data.rows[i]["key"][1] ][ "date" ] = data.rows[i]["key"][2];
-          
-          totalNumberOfRows = totalNumberOfRows + 1;
-
+      $.each(data.rows, function(i, row){  //note: jquery's 'each' function is synchronous
+        allChannelList.push(row['key']);
+        //console.log(row['key'])
       });
-      console.log('number of rows after hardware map ' + totalNumberOfRows.toString());  
-
-      obj.success();
+      
+      callbackFunction();
     }
   });
+}
 
+function getChannelMapsForThisDate(aUnixTime, options)
+{
+
+  aUnixTime = typeof aUnixTime !== 'undefined' ? aUnixTime : (new Date()).valueOf()/1000.0;
+
+  for(var i in allChannelList){
+    
+    hardwareMapDb.view('map/hv', {
+      reduce:false,
+      descending:true,
+      limit:1,
+      startkey :[allChannelList[i][0], allChannelList[i][1], aUnixTime],
+      endkey: [allChannelList[i][0], allChannelList[i][1], 0],
+      success:function(data){
+        //console.log('getChannelMapsForThisDate: ' + data.rows[0]);
+        //console.log(data)
+        options.success( [ data.rows[0].key[0], data.rows[0].key[1], data.rows[0]['value'] ] );
+      }
+    });
+
+  }
+}
+
+function setNewDateForDataOnDisplay(aUnixTime)
+{
+  dateOfDataOnDisplay = new Date(aUnixTime*1000.0);
+}
+
+
+// function getDataFromDateKey(aUnixTime)
+// {
+
+//   db.view(appName + '/logbydate', {
+//     startkey: aUnixTime,
+//     reduce:false,
+//     limit:1,
+//     descending:true,
+//     include_docs:true,
+//     success:function(data){
+//       highVoltageDoc = data.rows[0]["doc"];
+//       fillHighVoltageTable(highVoltageDoc);
+//       setNewDateForDataOnDisplay( data.rows[0]["key"] );
+//     }
+//   });
+// }
+
+function getDataForHvChannel(aChannelMap, aUnixTime, options)
+{
+  hvChannel = aChannelMap[2];
+  if(hvChannel <= 0) {
+    if(options.error != undefined)
+      options.error()
+    console.log('no hv channel: ' + aChannelMap)
+    return;
+  }
+
+  aUnixTime = typeof aUnixTime !== 'undefined' ? aUnixTime : (new Date()).valueOf()/1000.0;
+
+
+  db.view(appName + '/hvread_bychannel_unixtime', {
+    startkey: [hvChannel, aUnixTime],
+    endkey: [hvChannel, 0],
+    descending: true, 
+    limit: 1,
+    success: function(data){
+      if(options.success != undefined)
+        options.success( {'chaninfo':aChannelMap, 'data':data.rows[0]['value']} )
+    }
+  });
+}
+
+function fillTableForDate( aUnixTime )
+{
   
+  aUnixTime = typeof aUnixTime !== 'undefined' ? aUnixTime : (new Date()).valueOf()/1000.0;
 
+  resetTable();
+  setDateToDisplay(aUnixTime);
+
+  getChannelMapsForThisDate( aUnixTime, {
+
+    success:function(aChannelMap){
+
+      getDataForHvChannel( aChannelMap, aUnixTime, {
+        
+        success:function(resp){
+          //console.log(resp);
+          addTableRow(resp['chaninfo'][0], resp['chaninfo'][1], resp['chaninfo'][2], resp['data'] );
+        }
+      });
+    }
+  });
 }
-function getDateObjectForKeyArray(d)
+
+function resetTable()
 {
-  return new Date(d[0], d[1]-1, d[2], d[3], d[4], d[5], 0);  
+  $('.overview_table_body_elements').remove();
 }
 
-function setNewDateForDataOnDisplay(d)
+function setDateToDisplay(aUnixTime)
 {
-  dateOfDataOnDisplay = getDateObjectForKeyArray(d);
-}
+  aUnixTime = typeof aUnixTime !== 'undefined' ? aUnixTime : (new Date()).valueOf()/1000.0;
 
-function getKeyArrayFromDateObject(nd)
-{
-  return [nd.getFullYear(), nd.getMonth()+1, nd.getDate(), nd.getHours(), nd.getMinutes(), nd.getSeconds()];
-}
-
-function getDataFromDateKey(skey)
-{
-
-  //first, fill the hardware map based on this date
-  //then, with the map filled, fill the table.
-
-
-
-  db.view('app/logbydate', {
-    startkey: skey,
+  db.view(appName + '/logbydate', {
+    startkey: aUnixTime,
     reduce:false,
     limit:1,
     descending:true,
-    include_docs:true,
+    include_docs:false,
     success:function(data){
-      totalNumberOfRows = totalNumberOfRows + 1;
-      console.log('new number of rows ' + totalNumberOfRows.toString());        
-
-      highVoltageDoc = data.rows[0]["doc"];
-      fillHighVoltageTable(highVoltageDoc);
       setNewDateForDataOnDisplay( data.rows[0]["key"] );
+      document.getElementById("latestvalues_date").innerHTML = dateOfDataOnDisplay.toUTCString();
     }
   });
+
 }
 
-
-function getLatestData()
+function addTableRow(moduleNumber, moduleEndName, hvChan, hvValues)
 {
-  var now = new Date();
-  
-  getMapForCurrentDate( now, {
-    success:function(){        
-      
-      getDataFromDateKey( getKeyArrayFromDateObject( now ) );
+  var row = '<tr class="overview_table_body_elements">';
+  row += '<td aligh="right">'+ moduleNumber +'</td>';
+  row += '<td align="left">'+ moduleEndName +'</td>';
+  row += '<td>'+hvChan+'</td>';
 
-      
-    }
-  });
+  row += '<td>'+ hvValues['actual']+'</td>';    
+  row += '<td>'+ hvValues['demand']+'</td>';
 
+  var diffClass = "";
+  if (Math.abs(hvValues['actual'] - hvValues['demand']) > 10){
+   diffClass = 'class="red-table-element"';
+  } 
+  else {
+   diffClass = 'class="green-table-element"';
+  } 
+  var diffValue = hvValues['actual'] - hvValues['demand'];
+ 
+  row += '<td '+diffClass+' >'+ diffValue +'</td>';  
+  row += '<td>'+ hvValues['saved']+'</td>';  
+  row += '<td>'+ hvValues['backup']+'</td>';    
   
+  $('#latestvalues_table').append(row);
+
+  //is this the right place?
+  //console.log(' I am done!' )
+  $("#latestvalues_table").trigger("update");
+
+  //i don't think i need to set this, right? 
+  //i've included ithis is the css/style.css file
+  //
+  //$('.red-table-element').css("color","#f11");
+  //$('.green-table-element').css("color","rgb(15,99,30)");
 
 }
 
@@ -346,53 +502,53 @@ function getPreviousData()
 {
   var nd = new Date(dateOfDataOnDisplay);
   nd.setMinutes(nd.getMinutes() - timeBetweenMeasures + 5.0);
-  getDataFromDateKey( getKeyArrayFromDateObject(nd) );
 
+  fillTableForDate( nd.valueOf()/1000.0 );
 }
+
 function getNextData()
 {
   var nd = new Date(dateOfDataOnDisplay);
   nd.setMinutes(nd.getMinutes() + timeBetweenMeasures + 5.0);
-  getDataFromDateKey( getKeyArrayFromDateObject(nd) );
 
+  fillTableForDate( nd.valueOf()/1000.0 );
 }
 
-function fillHighVoltageTable(doc)
-{
-     $('.overview_table_body_elements').remove();
-     var docDate = new Date(doc['date_valid']['unixtime']*1000.0);
-     document.getElementById("latestvalues_date").innerHTML = docDate.toUTCString();
+// function fillHighVoltageTable(doc)
+// {
+//      $('.overview_table_body_elements').remove();
+//      var docDate = new Date(doc['date_valid']['unixtime']*1000.0);
+//      document.getElementById("latestvalues_date").innerHTML = docDate.toUTCString();
      
-     for (key in hardwareMapDoc) {
-       for (moduleEnd in hardwareMapDoc[key]) {
-        var row = '<tr class="overview_table_body_elements">';
-        row += '<td aligh="right">'+key+'</td>';
-        row += '<td align="left">'+moduleEnd+'</td>';
-        var hvChan = parseInt(hardwareMapDoc[key][moduleEnd]);
-        row += '<td>'+hvChan+'</td>';
-        row += '<td>'+ doc['values'][hvChan]['actual']+'</td>';    
-        row += '<td>'+ doc['values'][hvChan]['demand']+'</td>';
-        var diffClass = "";
-        if (Math.abs(doc['values'][hvChan]['actual'] - doc['values'][hvChan]['demand']) > 10){
-         diffClass = 'class="red-table-element"';
-        } 
-        else {
-         diffClass = 'class="green-table-element"';
-        } 
-        var diffValue = doc['values'][hvChan]['actual'] - doc['values'][hvChan]['demand'];
+//      for (key in hardwareMapDoc) {
+//        for (moduleEnd in hardwareMapDoc[key]) {
+//         var row = '<tr class="overview_table_body_elements">';
+//         row += '<td aligh="right">'+key+'</td>';
+//         row += '<td align="left">'+moduleEnd+'</td>';
+//         var hvChan = parseInt(hardwareMapDoc[key][moduleEnd]);
+//         row += '<td>'+hvChan+'</td>';
+//         row += '<td>'+ doc['values'][hvChan]['actual']+'</td>';    
+//         row += '<td>'+ doc['values'][hvChan]['demand']+'</td>';
+//         var diffClass = "";
+//         if (Math.abs(doc['values'][hvChan]['actual'] - doc['values'][hvChan]['demand']) > 10){
+//          diffClass = 'class="red-table-element"';
+//         } 
+//         else {
+//          diffClass = 'class="green-table-element"';
+//         } 
+//         var diffValue = doc['values'][hvChan]['actual'] - doc['values'][hvChan]['demand'];
        
-        row += '<td '+diffClass+' >'+ diffValue +'</td>';  
-        row += '<td>'+ doc['values'][hvChan]['saved']+'</td>';  
-        row += '<td>'+ doc['values'][hvChan]['backup']+'</td>';    
-        $('#latestvalues_table').append(row);
-       }
-     }
-     $('.red-table-element').css("color","#f11");
-     $('.green-table-element').css("color","rgb(15,99,30)");
+//         row += '<td '+diffClass+' >'+ diffValue +'</td>';  
+//         row += '<td>'+ doc['values'][hvChan]['saved']+'</td>';  
+//         row += '<td>'+ doc['values'][hvChan]['backup']+'</td>';    
+//         $('#latestvalues_table').append(row);
+//        }
+//      }
      
      
-     $("#latestvalues_table").trigger("update");
-}
+     
+//      $("#latestvalues_table").trigger("update");
+// }
 
 function getOptions(renderToId, chartTitle){
   
@@ -579,7 +735,7 @@ function getIndividualChartOption(chartTitle){
 function addToIndividualChart(individualChart, modEnd, skey, ekey, callbackFunction)
 {
 
-  db.view('app/hvread_bychannel_unixtime', {
+  db.view(appName + '/hvread_bychannel_unixtime', {
       startkey: skey,
       endkey: ekey,
       reduce:false,
@@ -593,7 +749,7 @@ function addToIndividualChart(individualChart, modEnd, skey, ekey, callbackFunct
         };
 
         $.each(data.rows, function(i, row){
-            dataSeries.data.push([row["key"][1], row["value"] ]);
+            dataSeries.data.push([row["key"][1], row["value"]['actual'] ]);
             //console.log( row["key"][1], row["value"]);
             totalNumberOfRows = totalNumberOfRows + 1;
         });

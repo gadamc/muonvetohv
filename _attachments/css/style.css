@@ -5,7 +5,15 @@ body {
    font-size: 60%;  
 }
 
-table, tr, td, th{   margin: 0;   padding: 0;   border: 0;   outline: 0;   vertical-align: baseline;   background: transparent;   border-collapse: collapse;}
+table, tr, td, th{
+   margin: 0;
+   padding: 0;
+   border: 0;
+   outline: 0;
+   vertical-align: baseline;
+   background: transparent;
+   border-collapse: collapse;
+}
 
 td {
    padding-top: 2px;
@@ -116,11 +124,15 @@ table.data-details {
    margin-bottom: 10px;  
 }
 
-td.category {   width: 100px;
-   color:#009933;    }
+td.category {
+   width: 100px;
+   color:#009933;    
+}
 
-td.item {   width: 100px;
-   color:#009933;    }
+td.item {
+   width: 100px;
+   color:#009933;    
+}
 
 td.result-isotope {
    min-width: 35px;
@@ -166,6 +178,12 @@ label.error {
    //font-size: 60%;   
 }
 
+.red-table-element {
+   color: #f11;
+}
+.green-table-element {
+   color: green;
+}
 
 
 
