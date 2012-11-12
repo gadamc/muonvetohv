@@ -581,7 +581,7 @@ function addToIndividualChart(theChart, modEnd, skey, ekey, callbackFunction)
         var seriesList = theChart.series;
         var addNew = true;
         console.log(seriesList);
-        var theDataArray = [];
+        var previousDataArray;
         var theSeriesIndex = -1;
         var dataSeries;
 
@@ -589,9 +589,10 @@ function addToIndividualChart(theChart, modEnd, skey, ekey, callbackFunction)
           if(aseries.name == modEnd){
             //console.log('found current series ' + modEnd);
             theSeriesIndex = i;
-            theDataArray = aseries.data;
+            previousDataArray = $.extend(true, [], aseries.data);  //make a deep copy of the data.
+
             ///console.log('series index ' + i);
-            //console.log('current data length ' + theDataArray.length);
+            console.log('previous data length ' + previousDataArray.length);
             addNew = false;
             return false;
           }
@@ -614,33 +615,35 @@ function addToIndividualChart(theChart, modEnd, skey, ekey, callbackFunction)
           // });
           // dataSeries = theChart.series[index];
         
+          var localArray = [];
           //console.log('adding new data. ' + data.rows.length + ' new points');
           $.each(data.rows, function(i, row){
             //console.log([row["key"][1]*1000.0, row["value"]['actual'] ]);
 
-            theDataArray.push([row["key"][1]*1000.0, row["value"]['actual'] ]);
+            localArray.push([row["key"][1]*1000.0, row["value"]['actual'] ]);
           });
 
           dataSeries = theChart.addSeries({
             name: modEnd,
-            data: theDataArray
+            data: localArray
           });
         }
         else{
           //console.log('adding new data to current series. ' + data.rows.length + ' new points')
-
+          dataSeries = theChart.series[theSeriesIndex];
           $.each(data.rows, function(i, row){
             //console.log([row["key"][1]*1000.0, row["value"]['actual'] ]);
-
-            theDataArray.push([row["key"][1]*1000.0, row["value"]['actual'] ]);
+            dataSeries.addPoint( [row["key"][1]*1000.0, row["value"]['actual'] ], false );
+            //previousDataArray.push([row["key"][1]*1000.0, row["value"]['actual'] ]);
 
           }); 
-          dataSeries = theChart.series[theSeriesIndex];
+          dataSeries.chart.redraw();
+          //dataSeries = theChart.series[theSeriesIndex];
 
-          dataSeries.setData(theDataArray);
+          //dataSeries.setData(previousDataArray);
         }
 
-        //console.log(dataSeries);  
+        console.log(dataSeries);  
         
         
         if(callbackFunction != undefined)
