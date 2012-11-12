@@ -180,9 +180,11 @@ label.error {
 
 .red-table-element {
    color: #f11;
+   font-weight:bold;
 }
 .green-table-element {
    color: green;
+   font-weight: bold;
 }
 
 
