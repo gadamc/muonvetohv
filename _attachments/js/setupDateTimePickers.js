@@ -1,3 +1,7 @@
+var now = new Date();
+var oneDayAgo = new Date();
+oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
 $(document).ready(function() {
 
   //
@@ -14,7 +18,7 @@ $(document).ready(function() {
     showButtonPanel: true,
     changeMonth: true,
     changeYear: true,
-    defaultDate: fourDaysAgo,
+    defaultDate: oneDayAgo,
     addSliderAccess: true,
     sliderAccessArgs: { touchonly: false },
     onClose: function(dateText, inst) {
@@ -60,7 +64,7 @@ $(document).ready(function() {
   });
           
   $('#fdate').datetimepicker('setDate', now );
-  $('#idate').datetimepicker('setDate', fourDaysAgo );
+  $('#idate').datetimepicker('setDate', oneDayAgo );
     
 
   $('#idate_i').datetimepicker({
@@ -68,7 +72,7 @@ $(document).ready(function() {
     showButtonPanel: true,
     changeMonth: true,
     changeYear: true,
-    defaultDate: fourDaysAgo,
+    defaultDate: oneDayAgo,
     addSliderAccess: true,
     sliderAccessArgs: { touchonly: false },
     onClose: function(dateText, inst) {
@@ -114,7 +118,7 @@ $(document).ready(function() {
   });
           
   $('#fdate_i').datetimepicker('setDate', now );
-  $('#idate_i').datetimepicker('setDate', fourDaysAgo );
+  $('#idate_i').datetimepicker('setDate', oneDayAgo );
 
 
 

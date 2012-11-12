@@ -4,9 +4,7 @@ var webinterfacedb = $.couch.db('webinterface');
 var appName = window.location.pathname.split("/")[3];
 
 
-var now = new Date();
-var fourDaysAgo = new Date();
-fourDaysAgo.setDate(fourDaysAgo.getDate() - 1);
+
 
 //var highVoltageDoc = {};
 
@@ -18,10 +16,8 @@ var timeBetweenMeasures = 30.0; //30 minutes between measures..
 //var dataForPlots = new Array();
 
 var totalNumberOfRows = 0;
-
-
 var allChannelList = [];
-
+var chartPointerStore = {};
 
 //
 //
@@ -84,8 +80,8 @@ for(var i=0, len=plotContainer.length; i < len; i++){
     var moddv=document.createElement('div');
     moddv.setAttribute("class", "span4");
     moddv.setAttribute("style", "height: 200px")
-    moddv.setAttribute("id", "module_" + plotContainer[i][ii]);
-    //console.log(moddv.outerHTML);
+    moddv.setAttribute("id", "highchart_for_module_" + plotContainer[i][ii]);
+
     currentRow.appendChild(moddv);
 
     count += 1;
@@ -192,7 +188,6 @@ $(document).ready(function() {
   //and then fill the table
   //
   fillAllChannelList(function(){
-    //console.log(allChannelList);
     fillTableForDate();  //fill the table
   });
   
@@ -207,10 +202,10 @@ function fillAllChannelList(callbackFunction)
     group_level:2,
     success:function(data){
       allChannelList = [];
+      totalNumberOfRows += data.rows.length;
 
       $.each(data.rows, function(i, row){  //note: jquery's 'each' function is synchronous
         allChannelList.push(row['key']);
-        //console.log(row['key'])
       });
       
       callbackFunction();
@@ -236,7 +231,8 @@ function getChannelMaps(options)
 
   if("handler" in options){
     viewOpts.success = function(data){
-      //console.log('hardware map db view success called');
+      totalNumberOfRows += data.rows.length;
+
       var chanMap = []
       //and now my spaghetti code has come full circle
       //where i'm just rewrapping the data from the view
@@ -248,11 +244,9 @@ function getChannelMaps(options)
           'time':row.key[2],
           'hvchan': row['value']
         });
-        //console.log('found a map');
-        //console.log(chanMap);
+
       });
 
-      //console.log('calling the handler');
       options.handler( chanMap );
     };
   }
@@ -260,20 +254,13 @@ function getChannelMaps(options)
   if("limit" in options)
     viewOpts.limit = options.limit
 
-  //console.log('getChannelMaps was called');
 
-  console.log(viewOpts)
 
   for(var  i=0, len=options.chanlist.length; i<len; i++){
     
     viewOpts.startkey  = [options.chanlist[i][0], options.chanlist[i][1], options.starttime],
     viewOpts.endkey = [options.chanlist[i][0], options.chanlist[i][1], options.endtime],
-    console.log('calling hardwareMapDb.view');
-    console.log('channel index ' + i);
-    var astring = '' + options.chanlist[i][0] + ' ' + options.chanlist[i][1] + ' ' + options.starttime;
-    console.log('startkey ' + astring);
-    astring = '' + options.chanlist[i][0] + ' ' + options.chanlist[i][1] + ' ' + options.endtime;
-    console.log('endkey ' + astring);
+
     hardwareMapDb.view('map/hv', viewOpts);
 
   }
@@ -297,8 +284,7 @@ function getDataForHvChannel(aChannelMap, aUnixTime, options)
   if(hvChannel <= 0) {
     if(options.error != undefined)
       options.error()
-    //console.log('no hv channel: ')
-    //console.log(aChannelMap);
+
     return;
   }
 
@@ -311,6 +297,7 @@ function getDataForHvChannel(aChannelMap, aUnixTime, options)
     descending: true, 
     limit: 1,
     success: function(data){
+      totalNumberOfRows+=1
       if(options.success != undefined)
         options.success( {'chaninfo':aChannelMap, 'data':data.rows[0]['value']} )
     }
@@ -342,7 +329,6 @@ function fillTableForDate( aUnixTime )
       getDataForHvChannel( aChannelMapArray[0], aUnixTime, {
         
         success:function(resp){
-          //console.log(resp);
           addTableRow(
             resp['chaninfo']['module'], 
             resp['chaninfo']['end'], 
@@ -371,6 +357,7 @@ function setDateToDisplay(aUnixTime)
     descending:true,
     include_docs:false,
     success:function(data){
+      totalNumberOfRows+=1
       setNewDateForDataOnDisplay( data.rows[0]["key"] );
       document.getElementById("latestvalues_date").innerHTML = dateOfDataOnDisplay.toUTCString();
     }
@@ -380,9 +367,11 @@ function setDateToDisplay(aUnixTime)
 
 function addTableRow(moduleNumber, moduleEndName, hvChan, hvValues)
 {
-  var row = '<tr class="overview_table_body_elements">';
-  row += '<td aligh="right">'+ moduleNumber +'</td>';
-  row += '<td align="left">'+ moduleEndName +'</td>';
+  var docId = 'overview_table_row_'+ moduleNumber + moduleEndName;
+
+  var row = '<tr class="overview_table_body_elements" id="' + docId + '">';
+  row += '<td>'+ moduleNumber +'</td>';
+  row += '<td>'+ moduleEndName +'</td>';
   row += '<td>'+hvChan+'</td>';
 
   row += '<td>'+ hvValues['actual']+'</td>';    
@@ -390,7 +379,7 @@ function addTableRow(moduleNumber, moduleEndName, hvChan, hvValues)
 
   var diffClass = "";
   if (Math.abs(hvValues['actual'] - hvValues['demand']) > 10){
-   diffClass = 'class="red-table-element"';
+   diffClass = 'class="red-table-element error"';
   } 
   else {
    diffClass = 'class="green-table-element"';
@@ -400,11 +389,16 @@ function addTableRow(moduleNumber, moduleEndName, hvChan, hvValues)
   row += '<td '+diffClass+' >'+ diffValue +'</td>';  
   row += '<td>'+ hvValues['saved']+'</td>';  
   row += '<td>'+ hvValues['backup']+'</td>';    
-  
   $('#latestvalues_table').append(row);
 
   //is this the right place?
   $("#latestvalues_table").trigger("update");
+
+  if (Math.abs(hvValues['actual'] - hvValues['demand']) > 10)
+    $('#' + docId).addClass("error")   
+  else 
+    $('#' + docId).addClass("success")  
+  
 
 
 }
@@ -504,48 +498,6 @@ function getDefaultChartOptions(renderToId, chartTitle){
 
 
 
-function getDataAndPlot()
-{
-
-  var startDate = Date.parse($("#idate").val());
-  var endDate = Date.parse($("#fdate").val());
-    
-
-  for (var module in hardwareMapDoc){
-
-    var chartOptions = getDefaultChartOptions("module_" + module, module);
-
-    try {
-      individualChart = new Highcharts.Chart(chartOptions);
-    }
-    catch(err) {
-      console.log(err);
-      console.log(document.getElementById(options.individualChart.renderTo));
-      return;
-    }
-
-
-    for (var modEnd in hardwareMapDoc[module]){
-      var hvChannel = parseInt(hardwareMapDoc[module][modEnd]);
-      var skey = [hvChannel, endDate];
-      var ekey = [hvChannel, startDate];
-
-
-
-      addToIndividualChart(individualChart, 
-      modEnd, 
-      skey, 
-      ekey, 
-      function (){
-        $('#plotButton').button('reset');
-      });
-
-    }
-  }
-
-}
-
-
 
 function getIndividualChartOption(chartTitle)
 {
@@ -563,7 +515,9 @@ function getIndividualChartOption(chartTitle)
 
 function addToIndividualChart(theChart, modEnd, skey, ekey, callbackFunction)
 {
-  
+  if(typeof theChart == undefined){
+    throw TypeError('the chart is undefined?....wtf?');
+  }
 
   db.view(appName + '/hvread_bychannel_unixtime', {
       startkey: skey,
@@ -571,79 +525,78 @@ function addToIndividualChart(theChart, modEnd, skey, ekey, callbackFunction)
       reduce:false,
       descending:true,
       include_docs:false,
-      success:function(data){
+      success:function(couchData){
 
-        console.log('hvread_bychannel_unixtime success')
-        console.log(modEnd);
-        console.log(skey);
-        console.log(ekey);
+        if(typeof theChart == undefined){
+          throw TypeError('the chart is undefined? in the couchdb view success function....wtf?');
+        } 
+
+        // console.log(couchData.rows.length);
+        totalNumberOfRows += couchData.rows.length;
 
         var seriesList = theChart.series;
+        
         var addNew = true;
-        console.log(seriesList);
         var previousDataArray;
         var theSeriesIndex = -1;
         var dataSeries;
 
-        $.each(seriesList, function(i, aseries){
-          if(aseries.name == modEnd){
-            //console.log('found current series ' + modEnd);
-            theSeriesIndex = i;
-            previousDataArray = $.extend(true, [], aseries.data);  //make a deep copy of the data.
+        try{
+          // console.log('current series list length' + seriesList.length);
 
-            ///console.log('series index ' + i);
-            console.log('previous data length ' + previousDataArray.length);
-            addNew = false;
-            return false;
-          }
-        });
+          $.each(seriesList, function(i, aseries){
+            if(aseries.name == modEnd){
+              theSeriesIndex = i;
+              previousDataArray = $.extend(true, [], aseries.data);  //make a deep copy of the data.
 
-        // for(var x=0, len=seriesList.length; i < len; i++){
-        //   if(seriesList[x]['name'] == modEnd){
-        //     dataSeries = seriesList[x];
-        //     theDataArray = dataSeries.data;
-        //     addNew = false;
-        //     break;
-        //   }
-        // }
+              addNew = false;
+              return false;
+            }
+          });
+          // console.log('did not catch error...serlist is:  ' + typeof seriesList);
+          // console.log('did not catch error...chart is:  ' + typeof theChart);
+        }
+        catch(err){
+          //this error occurs because the seriesList doesn't have a .length property that
+          //jquery needs to perform the loop....
+          //
+          if (err instanceof TypeError != true )
+            throw err;
+          
+          //console.log('caught error...serlist is:  '+  typeof seriesList);
+        }
+       
 
         if (addNew){
-          // index = theChart.series.length
-          // theChart.series.push({
-          //   name: modEnd,
-          //   data: []
-          // });
-          // dataSeries = theChart.series[index];
+       
         
           var localArray = [];
-          //console.log('adding new data. ' + data.rows.length + ' new points');
-          $.each(data.rows, function(i, row){
-            //console.log([row["key"][1]*1000.0, row["value"]['actual'] ]);
-
+          $.each(couchData.rows, function(i, row){
             localArray.push([row["key"][1]*1000.0, row["value"]['actual'] ]);
           });
 
-          dataSeries = theChart.addSeries({
-            name: modEnd,
-            data: localArray
-          });
+          try{
+            dataSeries = theChart.addSeries({
+              name: modEnd,
+              data: localArray
+            });
+          }
+          catch(err){
+            // console.log('caught error when addSeries was called');
+            // console.log('thechart is type: ' + typeof theChart);
+            // console.log('dataSeries is type: ' + typeof dataSeries);
+            // console.log('seriesList is type: ' + typeof seriesList);
+          }
         }
         else{
-          //console.log('adding new data to current series. ' + data.rows.length + ' new points')
           dataSeries = theChart.series[theSeriesIndex];
-          $.each(data.rows, function(i, row){
-            //console.log([row["key"][1]*1000.0, row["value"]['actual'] ]);
+          $.each(couchData.rows, function(i, row){
             dataSeries.addPoint( [row["key"][1]*1000.0, row["value"]['actual'] ], false );
-            //previousDataArray.push([row["key"][1]*1000.0, row["value"]['actual'] ]);
 
           }); 
           dataSeries.chart.redraw();
-          //dataSeries = theChart.series[theSeriesIndex];
-
-          //dataSeries.setData(previousDataArray);
+          
         }
-
-        console.log(dataSeries);  
         
         
         if(callbackFunction != undefined)
@@ -653,40 +606,15 @@ function addToIndividualChart(theChart, modEnd, skey, ekey, callbackFunction)
     });
 }
 
-
-
-function getIndividualDataAndPlot()
+function fillInChart(startDate, endDate, moduleNumber, aChart)
 {
 
-  var startDate = Date.parse($("#idate_i").val())/1000.0;
-  var endDate = Date.parse($("#fdate_i").val())/1000.0;
-
-  var selector = document.getElementById('moduleselect');
-  var module = selector.options[selector.selectedIndex].text;
-
-  //create a new chart
-  var chartOptions = getIndividualChartOption("Module " + module);
-  
-  try {
-    individualChart = new Highcharts.Chart(chartOptions);
-    console.log('new highchart. ' + individualChart.series.length);
-  }
-  catch(err) {
-    console.log(err);
-    console.log(document.getElementById( individualChart.renderTo ));
-    return;
-  }
-
-  var myChannelList = [];
+  var myChannelList = [ ];
 
   for (var ii=0, len=allChannelList.length; ii<len; ii++){
-    if(allChannelList[ii][0] == module)
-      myChannelList.push(allChannelList[ii]);
+    if(allChannelList[ii][0] == moduleNumber)
+      myChannelList.push( allChannelList[ii] );
   }
-
-  console.log(myChannelList);
-
-
 
   getChannelMaps({
     starttime: startDate, 
@@ -727,20 +655,14 @@ function getIndividualDataAndPlot()
             //anotherMapArray 
             //
 
-            console.log('more maps were found. hurray?');
             var previousStartDate = startDate;
             var previousMap = theStartTimeMapArray[0];  //ajax might not like this. theStartTimeMapArray may not be what you think it is when this is called!!
-            console.log('the starting map');
-            console.log(previousMap);
 
             for(var k=0, len=anotherMapArray.length; k < len; k++){
               var aChannelMap = anotherMapArray[k];
-              console.log('loop ' + k);
-              console.log('module end ' + previousMap['end']);
-              console.log('startkey ' + previousMap['hvchan'] + ' ' + aChannelMap['time'] )
-              console.log('endkey ' + previousMap['hvchan'] + ' ' + previousStartDate )
+              
 
-              addToIndividualChart(individualChart, 
+              addToIndividualChart(aChart, 
                 previousMap['end'], 
                 [previousMap['hvchan'], aChannelMap['time']], 
                 [previousMap['hvchan'], previousStartDate]
@@ -749,12 +671,12 @@ function getIndividualDataAndPlot()
               previousStartDate = aChannelMap['time'];
             }
             
-            addToIndividualChart(individualChart, 
+            addToIndividualChart(aChart, 
               previousMap['end'], 
               [previousMap['hvchan'], endDate], 
               [previousMap['hvchan'], previousStartDate],
               function (){
-                //individualChart.redraw();
+                //aChart.redraw();
                 $('#plotIndividualButton').button('reset');
               }
             );
@@ -764,16 +686,14 @@ function getIndividualDataAndPlot()
           //to make the plot over the entire user selected time-period
           //
           else{
-            console.log('only got the one map');
             var aChannelMap = theStartTimeMapArray[0];
-            console.log(aChannelMap);
 
-            addToIndividualChart(individualChart, 
+            addToIndividualChart(aChart, 
               aChannelMap['end'], 
               [aChannelMap['hvchan'], endDate], 
               [aChannelMap['hvchan'], startDate],
               function (){
-                //individualChart.redraw();
+                //aChart.redraw();
                 $('#plotIndividualButton').button('reset');
               }
             );
@@ -786,10 +706,75 @@ function getIndividualDataAndPlot()
     }//end 1st handler
 
   });//end 1st getChannelMaps call
+}
 
+
+function getIndividualDataAndPlot()
+{
+
+  var startDate = Date.parse($("#idate_i").val())/1000.0;
+  var endDate = Date.parse($("#fdate_i").val())/1000.0;
+
+  var selector = document.getElementById('moduleselect');
+  var module = selector.options[selector.selectedIndex].text;
+
+  try{
+      chartPointerStore['individualChart'].destroy()
+    }
+    catch(err){
+      //do nothing;
+      //console.log('failed to destroy a chart...' + module);
+    }
+
+  try {
+    var aChart = new Highcharts.Chart( getIndividualChartOption("Module " + module) );
+    fillInChart(startDate, endDate, module, aChart);  
+    chartPointerStore['individualChart'] = aChart;
+  }
+  catch(err) {
+    console.log(err);
+    console.log(document.getElementById( aChart.renderTo ));
+    return;
+  }
 
   
 
 }
+
+
+
+function getDataAndPlot()
+{
+
+  var startDate = Date.parse($("#idate").val())/1000.0;
+  var endDate = Date.parse($("#fdate").val())/1000.0;
+    
+
+  for (var ii = 0, len = allChannelList.length; ii< len; ii++){
+    module = allChannelList[ii][0];
+
+    try{
+      chartPointerStore['module_'+module].destroy()
+    }
+    catch(err){
+      //do nothing;
+      //console.log('failed to destroy a chart...' + module);
+    }
+
+    try {
+      var aChart = new Highcharts.Chart( getDefaultChartOptions("highchart_for_module_" + module, module) );
+      chartPointerStore['module_'+module] = aChart;
+      fillInChart(startDate, endDate, module, aChart);  
+
+    }
+    catch(err) {
+      console.log(err);
+      console.log(document.getElementById(options.aChart.renderTo));
+    }
+
+  }
+
+}
+
 
 
