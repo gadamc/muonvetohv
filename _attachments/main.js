@@ -394,11 +394,15 @@ function addTableRow(moduleNumber, moduleEndName, hvChan, hvValues)
   //is this the right place?
   $("#latestvalues_table").trigger("update");
 
-  if (Math.abs(hvValues['actual'] - hvValues['demand']) > 10)
-    $('#' + docId).addClass("error")   
-  else 
-    $('#' + docId).addClass("success")  
-  
+  if(hvValues['demand'] == 0){
+    $('#' + docId).addClass("info")
+  }
+  else{
+    if (Math.abs(hvValues['actual'] - hvValues['demand']) > 10)
+      $('#' + docId).addClass("error")   
+    else 
+      $('#' + docId).addClass("success")  
+  }
 
 
 }

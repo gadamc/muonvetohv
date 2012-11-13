@@ -1,6 +1,6 @@
 var now = new Date();
-var oneDayAgo = new Date();
-oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+var initialStartDate = new Date();
+initialStartDate.setHours(initialStartDate.getHours() - 12);
 
 $(document).ready(function() {
 
@@ -18,7 +18,7 @@ $(document).ready(function() {
     showButtonPanel: true,
     changeMonth: true,
     changeYear: true,
-    defaultDate: oneDayAgo,
+    defaultDate: initialStartDate,
     addSliderAccess: true,
     sliderAccessArgs: { touchonly: false },
     onClose: function(dateText, inst) {
@@ -64,7 +64,7 @@ $(document).ready(function() {
   });
           
   $('#fdate').datetimepicker('setDate', now );
-  $('#idate').datetimepicker('setDate', oneDayAgo );
+  $('#idate').datetimepicker('setDate', initialStartDate );
     
 
   $('#idate_i').datetimepicker({
@@ -72,7 +72,7 @@ $(document).ready(function() {
     showButtonPanel: true,
     changeMonth: true,
     changeYear: true,
-    defaultDate: oneDayAgo,
+    defaultDate: initialStartDate,
     addSliderAccess: true,
     sliderAccessArgs: { touchonly: false },
     onClose: function(dateText, inst) {
@@ -118,7 +118,7 @@ $(document).ready(function() {
   });
           
   $('#fdate_i').datetimepicker('setDate', now );
-  $('#idate_i').datetimepicker('setDate', oneDayAgo );
+  $('#idate_i').datetimepicker('setDate', initialStartDate );
 
 
 
