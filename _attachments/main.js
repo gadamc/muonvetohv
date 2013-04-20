@@ -18,6 +18,7 @@ var timeBetweenMeasures = 30.0; //30 minutes between measures..
 var totalNumberOfRows = 0;
 var allChannelList = [];
 var chartPointerStore = {};
+var timeOfLastTableRead = 0;
 
 //
 //
@@ -299,7 +300,7 @@ function getDataForHvChannel(aChannelMap, aUnixTime, options)
     success: function(data){
       totalNumberOfRows+=1
       if(options.success != undefined)
-        options.success( {'chaninfo':aChannelMap, 'data':data.rows[0]['value']} )
+        options.success( {'chaninfo':aChannelMap, 'data':data.rows[0]['value'], 'time':data.rows[0]['key'][1]} )
     }
   });
 }
@@ -310,7 +311,6 @@ function fillTableForDate( aUnixTime )
   aUnixTime = typeof aUnixTime !== 'undefined' ? aUnixTime : (new Date()).valueOf()/1000.0;
 
   resetTable();
-  setDateToDisplay(aUnixTime);
 
   getChannelMaps( {
     starttime: aUnixTime,
@@ -329,6 +329,17 @@ function fillTableForDate( aUnixTime )
       getDataForHvChannel( aChannelMapArray[0], aUnixTime, {
         
         success:function(resp){
+
+          if(timeOfLastTableRead != resp['time']){
+            //this shoudl all the be the same for each channel,but lets print to screen if something ever changes.
+            console.log(resp['channelinfo']);
+            console.log("time for latest table read changed from " + timeOfLastTableRead + " to " + resp['time'] );
+            timeOfLastTableRead = resp['time'];
+          }
+
+          setDateToDisplay(resp['time']+1);  //add one second just to make sure that you get the right data from the database. maybe this is unnecessary.
+
+
           addTableRow(
             resp['chaninfo']['module'], 
             resp['chaninfo']['end'], 
