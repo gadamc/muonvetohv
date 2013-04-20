@@ -145,16 +145,24 @@
               <div class="active tab-pane" id="tab-latestvalues-container">
                 
                 
-                <div class="well" style="padding: 5px 5px;">
-                  <button class="btn previousbtn" id='getPreviousButton'><i class="icon-arrow-left"></i> Previous Date</button>
-                  <button class="btn nextbtn" id='getNextButton'>Next Date <i class="icon-arrow-right"></i></button>
-                    &nbsp; &nbsp;
-                  <button class="btn latestbtn" id='getLatestButton'><i class="icon-repeat"></i>  Most Recent</button>
-                    &nbsp; &nbsp;   &nbsp; &nbsp;
-                  <input id="tableDate" name="tableDate" placeholder="month/day/year" class="input-box ui-widget-content ui-corner-all" style="width:150px"/>
+                <!-- <div class="well" style="padding: 5px 5px;"> -->
+                  <div class="span12">
+                    <div class="span2"><button class="btn previousbtn" id='getPreviousButton'><i class="icon-arrow-left"></i> Previous</button></div>
+                    <div class="span2"><button class="btn nextbtn" id='getNextButton'>Next <i class="icon-arrow-right"></i></button></div>
+                    <div class="span3"><button class="btn latestbtn" id='getLatestButton'><i class="icon-repeat"></i>  Now</button></div>
+                    <div class="span3"><button class="btn choosedatebtn" id='getChosenDate'>  Choose Date (GMT)</button></div>
+                    <div class="span2">
+                      <input id="tableDate" name="tableDate" placeholder="month/day/year" class="input-box ui-widget-content ui-corner-all" style="width:150px"/>
+                    </div>
 
-                </div>
+                    
+                  </div>
+
+                <!-- </div> -->
                 
+                <br>
+                <br>
+                <br>
                 <p id="latestvalues_date"></p>
                 
                 <table class="table table-condensed" id="latestvalues_table">
@@ -175,32 +183,27 @@
                     </tbody>
                 </table>
                   
-                <div class="well" style="padding: 5px 5px;">
-                  <button class="btn previousbtn" id='getPreviousButton_bottom'><i class="icon-arrow-left"></i> Previous Date</button>
-                  <button class="btn nextbtn" id='getNextButton_bottom'>Next Date <i class="icon-arrow-right"></i></button>
-                    &nbsp; &nbsp;
-                  <button class="btn latestbtn" id='getLatestButton_bottom'><i class="icon-repeat"></i>  Most Recent</button>
-                </div>
+                
               </div> <!-- latestvalues-container -->  
                
               <div class="tab-pane" id="tab-plots-container">
                   
-                <div class="well" style="padding: 15px 2px;">
+                <!-- <div class="well" style="padding: 15px 2px;"> -->
                   
                   <div class="span12">
                     <div class="span2"><button class="btn" data-loading-text="loading.." id='plotButton'><i class="icon-play"></i>  Plot</button></div>
         
                     <div class="span4">
-                      <label class="input-label">Start Date</label>
+                      <label class="input-label">Start Date (GMT)</label>
                       <input id="idate" name="idate" placeholder="month/day/year" class="input-box ui-widget-content ui-corner-all" style="width:150px"/>
                     </div>
                     <div class="span4">
-                      <label class="input-label">End Date</label>
+                      <label class="input-label">End Date (GMT)</label>
                       <input id="fdate" name="fdate" placeholder="month/day/year" class="input-box ui-widget-content ui-corner-all" style="width:150px"/>
                     </div>        
                   
                   </div>
-                </div> <!-- date selector --> 
+                <!-- </div> date selector  -->
                 
                 <br><br>
                   
@@ -209,22 +212,22 @@
 
               <div class="tab-pane" id="tab-individualplot-container">
                   
-                <div class="well" style="padding: 15px 2px;">
+                <!-- <div class="well" style="padding: 15px 2px;"> -->
                   
                   <div class="span12">
                     <div class="span2"><button class="btn" data-loading-text="loading..." id='plotIndividualButton'><i class="icon-play"></i>  Plot</button></div>
                     <div class="span2"><select class=" iselect input-select ui-widget-content ui-corner-all" style="width:75px" id="moduleselect"></select></div>
                     
                     <div class="span4">
-                      <label class="input-label">Start Date</label>
+                      <label class="input-label">Start Date (GMT)</label>
                       <input id="idate_i" name="idate_i" placeholder="month/day/year" class="input-box ui-widget-content ui-corner-all" style="width:150px"/>
                     </div>
                     <div class="span4">
-                      <label class="input-label">End Date</label>
+                      <label class="input-label">End Date (GMT)</label>
                       <input id="fdate_i" name="fdate_i" placeholder="month/day/year" class="input-box ui-widget-content ui-corner-all" style="width:150px"/>
                     </div>        
                   </div>
-                </div> <!-- date selector --> 
+                <!-- </div> date selector  -->
                 
                 <br><br>
                   

@@ -1,5 +1,5 @@
-var now = new Date();
-var initialStartDate = new Date();
+var now = new Date(new Date().getTime() + new Date().getTimezoneOffset()*60000);
+var initialStartDate = new Date( new Date().getTime() + new Date().getTimezoneOffset()*60000 );
 initialStartDate.setHours(initialStartDate.getHours() - 12);
 
 $(document).ready(function() {
@@ -120,6 +120,17 @@ $(document).ready(function() {
   $('#fdate_i').datetimepicker('setDate', now );
   $('#idate_i').datetimepicker('setDate', initialStartDate );
 
+  $('#tableDate').datetimepicker({
+    numberOfMonths: 1,
+    showButtonPanel: true,
+    changeMonth: true,
+    changeYear: true,
+    defaultDate: now,
+    addSliderAccess: true,
+    sliderAccessArgs: { touchonly: false }
+  });
+
+  $('#tableDate').datetimepicker('setDate', now );
 
 
   //

@@ -146,6 +146,11 @@ $(document).ready(function() {
    if( $('.nextbtn').hasClass('disabled') == false)
       getNextData();
   }); 
+
+  $('.choosedatebtn').click( function(e) {
+   if( $('.choosedatebtn').hasClass('disabled') == false)
+      fillTableForDate( getGmtTime($("#tableDate").val()) );
+  }); 
    
   $('.latestbtn').click( function(e) {
     if( $('.latestbtn').hasClass('disabled') == false)
@@ -195,6 +200,13 @@ $(document).ready(function() {
     
 
 });
+
+function getGmtTime(dateTimeString)
+{
+  //input is Date parseable date-time string and output is seconds from Jan 1 1970 GMT.
+
+  return Date.parse(dateTimeString)/1000.0 - new Date().getTimezoneOffset()*60;
+}
 
 function fillAllChannelList(callbackFunction)
 {
@@ -304,6 +316,11 @@ function getDataForHvChannel(aChannelMap, aUnixTime, options)
     }
   });
 }
+
+function  fillTableForChosenDate(){
+  fillTableForDate( getGmtTime($("#tableDate").val()) );
+}
+
 
 function fillTableForDate( aUnixTime )
 {
@@ -474,6 +491,13 @@ function getDefaultChartOptions(renderToId, chartTitle){
          //            }
          //        }
       },
+      tooltip: {
+                formatter: function() {
+                        return '<b>'+ this.y + ' V' +'</b><br/>'+
+                        Highcharts.dateFormat('%e %b %H:%M', this.x);
+                }
+            },
+
     //   legend: {
 		  // align: 'left',
 		  // verticalAlign: 'top',
@@ -727,8 +751,8 @@ function fillInChart(startDate, endDate, moduleNumber, aChart)
 function getIndividualDataAndPlot()
 {
 
-  var startDate = Date.parse($("#idate_i").val())/1000.0;
-  var endDate = Date.parse($("#fdate_i").val())/1000.0;
+  var startDate = getGmtTime( $("#idate_i").val() );
+  var endDate = getGmtTime( $("#fdate_i").val() );
 
   var selector = document.getElementById('moduleselect');
   var module = selector.options[selector.selectedIndex].text;
@@ -761,8 +785,8 @@ function getIndividualDataAndPlot()
 function getDataAndPlot()
 {
 
-  var startDate = Date.parse($("#idate").val())/1000.0;
-  var endDate = Date.parse($("#fdate").val())/1000.0;
+  var startDate = getGmtTime( $("#idate").val() );
+  var endDate = getGmtTime( $("#fdate").val() );
     
 
   for (var ii = 0, len = allChannelList.length; ii< len; ii++){
